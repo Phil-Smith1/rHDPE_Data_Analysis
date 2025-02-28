@@ -1,0 +1,141 @@
+---
+title: "DataLab R SDK"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{example-usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval=FALSE
+)
+```
+
+This document provides examples of how to use the DataLab R SDK.
+
+```{r setup}
+library(datalabSDK)
+```
+
+
+## Set up the client
+
+Select the environment:
+
+```{r}
+env <- Environment$DEV
+```
+
+Authenticate and retrieve an access token:
+
+```{r}
+token <- SimplePersistedToken()$get_token(env, "temp.auth")
+```
+
+Set up the raw client:
+
+```{r}
+client <- RawClient(env)
+```
+
+
+## Check provenance
+
+Provenance correlation ID before making a call: 
+```{r}
+client$get_provenance_session_id(token)
+```
+
+Make a call:
+
+```{r}
+search_url <- get_public_api_url(env, "search/mme")
+search_results <- client$post(search_url, token, list("SearchTerm" = "sum"))
+```
+
+Provenance correlation ID after making a call:
+
+```{r}
+client$get_provenance_session_id(token)
+```
+
+## Search data
+
+Get the correct URL for the selected environment:
+
+```{r}
+search_url <- get_public_api_url(env, "search?includeObsolete=false")
+```
+
+Define the search parameters:
+
+```{r}
+search_term <- "data"
+page <- 1
+max_pages <- 3
+```
+
+Perform the search:
+
+```{r}
+tryCatch(
+  {
+    more <- TRUE
+    while(more) {
+      search_body <- list(
+        "SearchTerm" = search_term, 
+        "Page" = page
+      )
+      
+      search_results <- client$post(search_url, token, search_body)
+      
+      print(paste("First 5 results of page", page))
+      
+      for (result in search_results[["results"]][1:5]) {
+        print(paste(result[["Name"]], result[["Description"]]))
+      }
+      
+      page <- page + 1
+      more <- search_results[["next"]] & page <= max_pages
+    }
+  },
+  APIError = function(e) {
+    stop(e)
+  }
+)
+```
+
+## Search models
+
+```{r}
+search_url <- get_public_api_url(env, "search/mme")
+
+search_results <- client$post(search_url, token, list("SearchTerm" = "sum"))
+
+print(search_results[["results"]][[1]])
+```
+
+## Upload a file
+
+```{r}
+url <- get_public_api_url(env, "")
+
+metadata <- list(Name=jsonlite::unbox("Test file"),
+                 Description=jsonlite::unbox("A test file"),
+                 Tags=c("test-file"), 
+                 KeyValueFields = list(),
+                 AccessGroups=c("BD4BS-DEV-Public"))
+
+data <- tempfile()
+writeLines("Test file", data)
+
+body <- list(file = httr::upload_file(data, type="text/plain"), 
+             metadata = jsonlite::toJSON(metadata))
+
+r <- client$post(url=url, token=token, body=body, encode="multipart")
+```
+

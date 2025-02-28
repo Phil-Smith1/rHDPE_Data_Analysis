@@ -1,0 +1,25 @@
+name: "shinyUtils-pr-build-$(BuildID)-$(Date:yyyMMdd)$(Rev:.r)"
+resources:
+- repo: self
+  clean: true
+trigger: none
+pr:
+  branches:
+    include:
+    - refs/heads/master
+  paths:
+    include:
+    - user-utils/Bd4bsShinyUtils
+    exclude:
+    - user-utils/Bd4bsShinyUtils/*.md
+jobs:
+- job: Pr_Build_ShinyUtils
+  timeoutInMinutes: 20
+  cancelTimeoutInMinutes: 5
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+    - template: shared.yaml
+      parameters:
+        containerSrcDirectory: "user-utils/user-scripts"
+        imageName: "user-scripts"

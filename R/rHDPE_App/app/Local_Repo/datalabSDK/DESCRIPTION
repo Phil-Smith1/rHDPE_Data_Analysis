@@ -1,0 +1,18 @@
+Package: datalabSDK
+Type: Package
+Title: DataLab R SDK
+Version: 0.1.7
+Author: Abigail O'Rourke
+Maintainer: DataLab maintainers <Abigail.ORourke@unilever.com>
+Description: This package contains the DataLab R SDK. This SDK simplifies
+    the use of the DataLab User API functionality and provides helper functions
+    to support common use cases when working with models and data.
+License: file LICENSE
+Encoding: UTF-8
+Imports: httr (>= 1.4.0), jsonlite, jose, R6
+LazyData: true
+Suggests: knitr, rmarkdown, testthat
+VignetteBuilder: knitr
+RoxygenNote: 7.1.1
+NeedsCompilation: no
+Packaged: 2021-02-04 12:19:01 UTC; roua

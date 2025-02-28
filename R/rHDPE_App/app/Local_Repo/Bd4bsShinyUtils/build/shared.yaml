@@ -1,0 +1,25 @@
+steps:
+- task: Docker@1
+  displayName: 'Build in Docker'
+  inputs:
+    dockerFile: "user-utils/Bd4bsShinyUtils/Dockerfile.ShinyUtils.Build"
+    useDefaultContext: true
+    imageName: 'bd4bs-shiny-utils-build'
+    includeSourceTags: false
+    includeLatestTag: true
+    addDefaultLabels: false # This image never leaves the build agent.
+- task: Docker@1
+  displayName: 'Create container for builder image'
+  inputs:
+    command: 'create'
+    arguments: '--name bd4bs-shiny-utils-build bd4bs-shiny-utils-build:latest'
+- task: Docker@1
+  displayName: 'Copy test results'
+  inputs:
+    command: 'cp'
+    arguments: 'bd4bs-shiny-utils-build:/app/testResults.xml /tmp/testResults.xml'
+- task: PublishTestResults@2
+  displayName: 'Publish test results'
+  inputs:
+    testResultsFiles: '/tmp/testResults.xml'
+    failTaskOnFailedTests: true

@@ -1,0 +1,12 @@
+name: rhdpe_app
+title: app
+username: philsmith
+account: philsmith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11351637
+bundleId: 9778443
+url: https://philsmith.shinyapps.io/rhdpe_app/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

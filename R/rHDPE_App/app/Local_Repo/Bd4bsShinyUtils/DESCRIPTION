@@ -1,0 +1,18 @@
+Package: Bd4bsShinyUtils
+Type: Package
+Title: BD4BS Shiny Utilities
+Version: 1.0
+Author: Nikolas Burkoff
+Maintainer: DataLab maintainers <nikolas.burkoff@unilever.com>
+Description: This package provides Shiny modules for searching and extracting data from DataLab.
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
+Depends: R (>= 3.3), shiny (>= 1.0.1)
+Imports: DT, jsonlite (>= 1.6), httr (>= 1.4.0), utils
+Suggests: knitr, rmarkdown, testthat
+VignetteBuilder: knitr
+NeedsCompilation: no
+Packaged: 2019-12-02 09:47:29 UTC; burn

@@ -1,0 +1,12 @@
+name: App_Files
+title: App_Files
+username: philsmith
+account: philsmith
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12242795
+bundleId: 8795548
+url: https://philsmith.shinyapps.io/App_Files/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

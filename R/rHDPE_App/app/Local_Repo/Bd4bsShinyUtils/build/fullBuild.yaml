@@ -1,0 +1,31 @@
+name: "build-$(BuildID)"
+resources:
+- repo: self
+  clean: true
+trigger:
+  branches:
+    include:
+    - refs/heads/master
+  paths:
+    include:
+    - user-utils/Bd4bsShinyUtils
+    exclude:
+    - user-utils/Bd4bsShinyUtils/*.md
+jobs:
+- job: Full_Build_ShinyUtils
+  timeoutInMinutes: 20
+  cancelTimeoutInMinutes: 5
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - template: shared.yaml
+  - task: Docker@1
+    displayName: 'Copy built package to staging'
+    inputs:
+      command: 'cp'
+      arguments: 'bd4bs-shiny-utils-build:/app/publish $(Build.ArtifactStagingDirectory)/'
+  - task: PublishBuildArtifacts@1
+    displayName: "Publish package"
+    inputs:
+      PathToPublish: "$(Build.ArtifactStagingDirectory)"
+      ArtifactName: Bd4bsShinyUtils

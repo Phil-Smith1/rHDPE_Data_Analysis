@@ -1,0 +1,206 @@
+---
+title: "Writing shiny apps for BD4BS"
+author: "Nik Burkoff (Tessella)"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Basic shiny Apps
+
+* To run a shiny app on BD4BS the app must use the R library `packrat` to record the dependencies. For more information about packrat click [here](https://rstudio.github.io/packrat/).
+* The folder that contains the server.R/ui.R or app.R file(s) must be called `app`
+* All required code should be stored within this directory 
+* On BD4BS R 3.5.2 on Linux is used so your app must work with this version of R on this OS.  
+* A fresh container is created for each app so note if your app uses packages which have external (non-R) dependencies they may not work - although many of the common programs such as pandoc and Java are available (contact BD4BS support if you are unsure)
+* Note server side bookmarks are not supported on BD4BS
+
+When deploying apps:
+
+* Make sure the packrat library is up-to-date: `packrat::snapshot()`
+* Create a packrat bundle: `packrat::bundle(include.bundles = FALSE, omit.cran.src=TRUE)` which will create a tar.gz file in the `packrat/bundles` folder which is to be uploaded to the platform.
+
+Further details can be found on the R Shiny data scientists help page on BD4BS.
+
+## Interacting with the BD4BS filestore
+
+It is possible to search and read from the BD4BS file store from an uploaded shiny app. In order to do this you should use the `Bd4bsShinyUtils` package. This package provides two shiny [modules](https://shiny.rstudio.com/articles/modules.html):
+
+* `extract_platform_UI` (together with server function `extract_platform`): provides a pop-up dialog box for users to enter BD4BS file store uids of files to be extracted.
+* `search_platform_UI` (together with server function `search_platform`): provides a pop-up dialog box for users to search and then download files from the platform. It also provides a 'cart' mode which is described later.
+
+It is also possible to write files to the BD4BS file store using the `access_data_gateway_write` function and read the latest file from a given repoid (see below for more details). 
+
+
+### Using Bd4bsShinyUtils with packrat
+
+The `Bdb4sShinyUtils` package can be used with packrat as a local package (see `local.repos` option within `help("packrat-options")`) which will then allow `packrat::snapshot()` to include the package as a dependency. Note you will need to untar the package for this to work.
+
+When building the app from a working version off platform, provided the snapshot was successful, BD4BS will be able to deploy the app (as `Bd4bsShinyUtils` will be stored in the `packrat/src` folder). If building the app automatically from the repository e.g. by a continuous integration server then if:
+
+* the local package folder is within the shiny app directory
+* the relative path from the app directory is used for the `SourcePath` argument to the package (in `packrat.lock`) 
+* the relative path from the app directory is used for the local.repos argument in the `packrat.opts` file
+* relative paths are specified as `a/b` not `./a/b`
+
+then the packrat bundle for BD4BS can be created without having to recreate the whole packrat environment off platform.
+
+### Local filestore
+
+These modules extract files and store them in a local file store within the shiny app which is unique to the individual shiny session and is deleted when a session is closed (i.e. the browser tab is closed). In order to set up this file store the following code must be included in the `shinyServer` function:  
+
+```{r setupfilestore, eval=FALSE}
+library("Bd4bsShinyUtils")
+
+shinyServer(function(input, output, session){
+  
+  #set up the local filestore (this is session-level storage)
+  #this is stored in working_directory/tmp/filestore/<<session id>>
+  filestore_location <- Bd4bsShinyUtils::setup_local_filestore(session)
+  
+  #destroy the local filestore when user session ends
+  onSessionEnded(function() Bd4bsShinyUtils::destroy_local_filestore(filestore_location))
+  
+  ######
+  
+  #Rest of shiny app here
+```
+
+### Extracting by uid
+
+The following code snippet (inside the `shinyServer` function) will pop-up the extract dialog box when the users presses the `actionButton` called `extract_button` which is assumed to have been defined elsewhere.
+
+The dialog box allows users to paste in a uid to download. The latest successfully downloaded file uid is available in the reactive `extracted_file` which is available to the rest of the code. By setting a trigger when extracted_file changes it is possible to record all files extracted using this dialog box for a given session, not just those most recently downloaded. 
+
+
+```{r extract, eval=FALSE}
+observeEvent(input$extract_button, {
+  showModal(Bd4bsShinyUtils::extract_platform_UI("extract_ui", default_value="", title = "Extract file"))
+})
+
+extracted_file <- callModule(Bd4bsShinyUtils::extract_platform, "extract_ui", filestore_location)
+```
+
+The "extract_ui" parameter links the extract_platform and extract_platform_UI functions together (as in principle there can be multiple copies of the same module within the app - see shiny modules documentation for more information).
+
+It is possible (although not recommended) to directly call the function: `access_data_gateway_by_id` which will bypass the UI component entirely and download the file. The arguments required are the file id (uid) and R shiny session object (session), and the filestore location (filestore_location). If this is being used then it is important to add error handling in case this function fails. 
+
+### Accessing files
+
+Once the file has been downloaded into the local shiny file store the `access_local_filestore` function can be used to read the file into a reactive. In the code snippet below the `readLines` function with argument `n=100` is used to read the first 100 lines of the file into the `file_contents` reactive. Other file read functions (with their additional arguments used instead of `n`) can be used instead.
+
+```{r access_file_store, eval=FALSE}
+file_contents <- reactive({
+  req(extracted_file())
+  access_local_filestore(filestore_location, extracted_file(), 
+                       file_read_function=readLines, n=100)
+  })
+```
+
+Note: It is worth wrapping this code inside a `tryCatch` to handle the case where the file is not able to be read.
+
+### Searching the platform
+
+Using the `search_platform` module, it is possible to search the platform by a search term or for specific tags. Only files for which the user has the appropriate permissions will be shown. The module then allows users to select files for importing into the local shiny file store. The code snippet below will load the dialog box when the actionButton `search_button` (assumed defined elsewhere) is clicked.   
+
+```{r search_mode, eval=FALSE}
+observeEvent(input$search_button,{
+  showModal(Bd4bsShinyUtils::search_platform_UI("search_ui"))
+})
+  
+saved_files_from_search <- callModule(Bd4bsShinyUtils::search_platform, "search_ui", filestore_location)
+```
+
+The saved_files_from_search reactive is a dataframe of the files from the search which were selected by the user and have been downloaded into the local file store or NULL if no files extracted/last file extraction attempted failed.
+
+The dataframe contains the following columns: Name, Description, Tags, Id and RepoId and Key-Values (see the Writing files to platform section below) and a subset of these columns is shown in the table of search results shown in the dialog box (see `selected_columns_for_results_table` argument).
+
+For further options see the function help for `search_platform`.
+
+The Id column contains the name of the files in the local file store. To read the first 100 lines of the first file into a reactive:
+```{r search_file_read, eval=FALSE}
+
+file_ids <- reactive({
+  req(saved_files_from_search())
+  saved_files_from_search()[, "Id"]
+})
+
+first_file_contents <- reactive({
+  req(file_ids())
+  access_local_filestore(filestore_location, file_ids()[1], 
+                       file_read_function=readLines, n=100)
+})
+```
+
+
+### Writing files to the platform
+
+Within the platform file store each file has a unique id (called `DataID` below), it also has an associated `RepoID`. When a new version of a file is uploaded, it retains the `RepoID` of the original but is given its own `DataID`.
+
+The Bd4bsShinyUtils package includes the `access_data_gateway_write` function which uploads files, both new files and new versions of existing files, into the filestore. It takes the following arguments:
+
+* file: the path to the file to write to the file store  
+* session: the R shiny session object
+* name: the name to give the file when on the platform
+* description: the description to give the file when on the platform 
+* tags: vector of tags to give the file
+* custom_metadata_key_values: list of key-value fields (e.g. as if the file being written was uploaded using a custom metadata template), the default value can be used if no key-value fields are required.
+* access_groups: vector of AD groups to give the file. Note the AD groups of the current user can be retrieved using the `get_ad_groups` function.  
+* file_type: the type of file to be uploaded (by default "text/plain"), if unsure a guess can be made using the function `mime::guess_type()`. 
+
+If the `repoID` argument is `NULL` then the file will be uploaded to a new repo (and is given a new `RepoID`), otherwise it will update an existing `repoID` with a new version.  
+
+An example of the custom_metadata_key_values argument is shown below (notes: `CategoryPath` is currently unused and `Date` is calculated using
+`as.numeric(as.POSIXct("2014-01-01")) *1000`):
+```{r keyvaluefield, eval=FALSE}
+list(list(Key=jsonlite::unbox("string_key"), CategoryPath=character(0),
+          Value=jsonlite::unbox("example_value"), Type=jsonlite::unbox("STRING")),
+     list(Key=jsonlite::unbox("number_key"), CategoryPath=character(0),
+          Value=jsonlite::unbox(67.87), Type=jsonlite::unbox("NUMBER")),
+     list(Key=jsonlite::unbox("boolean_key"), CategoryPath=character(0),
+          Value=jsonlite::unbox(TRUE), Type=jsonlite::unbox("BOOLEAN")),
+     list(Key=jsonlite::unbox("date_key"), CategoryPath=character(0),
+          Value=jsonlite::unbox(1388534400000), Type=jsonlite::unbox("DATE"))
+     )
+```
+
+This function will throw an error if the upload was unsuccessful and return a named list (which includes `DataID` and `RepoID` if successful.
+
+### Getting the latest file from a given RepoID
+
+It is possible to directly call the function: `access_data_gateway_by_id` bypassing the extract UI component entirely and download the latest file associated with a given `RepoID`. In this case the arguments required are the repo id (repoID), R shiny session object (session), the filestore location (filestore_location) and a file description (file_descriptor) to produce an understandable error message. Finally, the `uid` argument should be set to `NULL`.
+
+The extracted file is brought into the local filestore and given the name of the repoID. If this function is being used then it is important to add error handling in case this function fails.
+
+
+## Developing apps off platform
+
+The Bd4bsShinyUtils package includes a 'dev-mode' so that apps can be developed and tested away from the platform. In order to do this it is necessary to enable dev-mode and set a path to a local directory which is going to stand in for the filestore:
+
+```{r dev_mode, eval=FALSE}
+options(Bd4bsShinyUtils.dev_mode = TRUE)
+options(Bd4bsShinyUtils.dev_dir="path/to/directory")
+```
+
+When using dev-mode any files in the dev-dir can be extracted into the app (using their filename in place of the uid) and the search/cart functionality has been mocked up to return all files in the directory irrespective of the search term/cart id used. Dummy metadata (description/tags) have been included. When using development mode and writing a new file to the filestore, be aware that if a file with the same name exists in the directory it will be overwritten. 
+
+As the dev-mode does not have the concept of a `RepoId`, when uploading new files the `repoID` argument of `access_data_gateway_write()` is ignored and when accessing the latest file dev-mode looks for a file directly named `repoID`. It is important to make sure that the correct argument is used when the app is deployed. 
+
+Before bundling up the app for deployment on the platform it is important to set `options(Bd4bsShinyUtils.dev_mode = FALSE)` (or remove the line entirely).  
+By setting system environment variables on your local machine you can simplify the process - e.g if environment variable `BD4BS_DEV_MODE` is set to `TRUE` then `options(Bd4bsShinyUtils.dev_mode = TRUE)` is executed.
+
+## Datasets 
+
+It is also possible to interact with datasets on the BD4BS platform. See the functions `access_data_gateway_by_dataset_id`, `access_data_gateway_by_search` (with `dataset_search=TRUE`)  and `access_data_gateway_dataset_write` for futher details. Note this functionality is not available in dev-mode. 
