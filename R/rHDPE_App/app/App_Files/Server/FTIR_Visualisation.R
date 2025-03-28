@@ -97,7 +97,7 @@ obtain_data_to_plot_ftir <- eventReactive( input$ftir_visualise_ab, {
   ftir_input_parameters$shiny_specimens_to_plot <- ftir_selected_specimens()
   ftir_input_parameters$shiny_split <- ftir_range()
   
-  data.frame( FTIR_Analysis$FTIR_plotting$plot_data( ftir_input_parameters, ftir_data$data_minus_hidden[[1]], ftir_data$data_minus_hidden[[2]], c(), c(), c(), c(), c(), c(), c() ) )
+  data.frame( FTIR_Analysis$FTIR_plotting$plot_data( ftir_input_parameters, ftir_data$data_minus_hidden[[1]], ftir_data$data_minus_hidden[[2]], c(), c(), c(), c(), c(), c(), c(), name_appendage = current_dataset() ) )
   
 })
   

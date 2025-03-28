@@ -1,5 +1,6 @@
 VIRTUALENV_NAME = "rhdpe_env"
 Sys.setenv( VIRTUALENV_NAME = VIRTUALENV_NAME )
+Sys.setenv( ORIGINALWD = getwd() )
 
 if (Sys.info()[["user"]] == "shiny"){
   
@@ -8,16 +9,7 @@ if (Sys.info()[["user"]] == "shiny"){
 
 }
 
-Sys.setenv( ORIGINALWD = getwd() )
-
-# else {
-#   
-#   options( shiny.port = 7450 )
-#   Sys.setenv( PYTHON_PATH = "3.12" )
-#   
-# }
-
-if (Sys.info()[["user"]] != "shiny"){
+if (Sys.info()[["user"]] != "shiny") {
 
   #### -- Packrat Autoloader (version 0.9.1-1) -- ####
   source( "packrat/init.R" )

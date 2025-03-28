@@ -45,7 +45,7 @@ else:
 
     ip.read_and_analyse_features = True # Read features from a file and perform analysis.
 
-    ip.plot_data = True # Run function that plots data.
+    ip.plot_data = False # Run function that plots data.
 
     ip.sandbox = False # Run functions that are experimental.
 

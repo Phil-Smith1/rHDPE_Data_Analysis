@@ -1,7 +1,17 @@
-library( rlang )
+#===============
+# This file is copied from Promises/R/future_promise.R on GitHub: https://github.com/rstudio/promises/blob/rc-v1.3.2/R/future_promise.R
+# It enables access to WorkQueue which does not seem to be exported as part of the Promises package.
+# The object WorkQueue is then used in CustomWorkQueue.R.
 
-# Copied from Promises/R/future_promise.R on GitHub: https://github.com/rstudio/promises/blob/rc-v1.3.2/R/future_promise.R
-# future_promise_queue deleted as not needed (already exported) and caused an error (I think around assert_work_queue_pkgs()).
+# Note to self: future_promise_queue deleted as not needed (already exported) and caused an error (I think around assert_work_queue_pkgs()).
+
+#===============
+# Libraries
+
+library( rlang ) # Added as otherwise is_false function is not found.
+
+#===============
+# Below code is copied from the aforementioned file.
 
 debug_msg_can_print <- FALSE
 debug_msg <- function(...) {

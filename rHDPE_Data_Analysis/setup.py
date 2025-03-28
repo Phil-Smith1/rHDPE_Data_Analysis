@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
 name='rHDPE_Data_Analysis',
-version='1.0.148',
+version='1.0.163',
 author='Phil Smith',
 author_email='pvsmith100@btinternet.com',
 description='Package for analysing data relating to recycled HDPE',

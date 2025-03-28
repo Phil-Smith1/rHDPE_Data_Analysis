@@ -1,3 +1,16 @@
+#===============
+# File containing all extended tasks (downloading and saving data).
+
+#===============
+# Sources
+
+source( here::here( "App_Files/CustomWorkQueue.R" ) ) # Defines the custom work queue for use by future_promise.
+
+#===============
+# Code.
+
+# Download and save templates for Google Drive.
+
 read_zip_from_gd <- function( directory, label ) {
   
   authorise_googledrive( "" )
@@ -40,6 +53,8 @@ save_zip_file_to_gd <- function( directory, label ) {
   return( TRUE )
   
 }
+
+# Download and save of miscellaneous files for Google Drive.
 
 read_initial_files_gd_et <- ExtendedTask$new( function( directory ) {
   
@@ -93,6 +108,8 @@ save_initial_files_gd_et <- ExtendedTask$new( function( directory ) {
   
 })
 
+# Download and save for FTIR for Google Drive.
+
 read_zip_from_gd_et_ftir <- ExtendedTask$new( function( directory ) {
   
   future_promise({
@@ -112,6 +129,8 @@ save_zip_file_to_gd_et_ftir <- ExtendedTask$new( function( directory ) {
   }, queue = custom_work_queue )
   
 })
+
+# Download and save for DSC for Google Drive.
 
 read_zip_from_gd_et_dsc <- ExtendedTask$new( function( directory ) {
     
@@ -133,6 +152,8 @@ save_zip_file_to_gd_et_dsc <- ExtendedTask$new( function( directory ) {
   
 })
 
+# Download and save for TGA for Google Drive.
+
 read_zip_from_gd_et_tga <- ExtendedTask$new( function( directory ) {
     
   future_promise({
@@ -152,6 +173,8 @@ save_zip_file_to_gd_et_tga <- ExtendedTask$new( function( directory ) {
   }, queue = custom_work_queue )
   
 })
+
+# Download and save for Rheology for Google Drive.
 
 read_zip_from_gd_et_rheo <- ExtendedTask$new( function( directory ) {
   
@@ -173,6 +196,8 @@ save_zip_file_to_gd_et_rheo <- ExtendedTask$new( function( directory ) {
   
 })
 
+# Download and save for Colour for Google Drive.
+
 read_zip_from_gd_et_colour <- ExtendedTask$new( function( directory ) {
   
   future_promise({
@@ -192,6 +217,8 @@ save_zip_file_to_gd_et_colour <- ExtendedTask$new( function( directory ) {
   }, queue = custom_work_queue )
   
 })
+
+# Download and save for Tensile Testing for Google Drive.
 
 read_zip_from_gd_et_tt <- ExtendedTask$new( function( directory ) {
   
@@ -213,6 +240,8 @@ save_zip_file_to_gd_et_tt <- ExtendedTask$new( function( directory ) {
   
 })
 
+# Download and save for SHM for Google Drive.
+
 read_zip_from_gd_et_shm <- ExtendedTask$new( function( directory ) {
   
   future_promise({
@@ -232,6 +261,8 @@ save_zip_file_to_gd_et_shm <- ExtendedTask$new( function( directory ) {
   }, queue = custom_work_queue )
   
 })
+
+# Download and save for TLS for Google Drive.
 
 read_zip_from_gd_et_tls <- ExtendedTask$new( function( directory ) {
   
@@ -253,6 +284,8 @@ save_zip_file_to_gd_et_tls <- ExtendedTask$new( function( directory ) {
   
 })
 
+# Download and save for ESCR for Google Drive.
+
 read_zip_from_gd_et_escr <- ExtendedTask$new( function( directory ) {
   
   future_promise({
@@ -272,6 +305,8 @@ save_zip_file_to_gd_et_escr <- ExtendedTask$new( function( directory ) {
   }, queue = custom_work_queue )
   
 })
+
+# Download and save for GCMS for Google Drive.
 
 read_zip_from_gd_et_gcms <- ExtendedTask$new( function( directory ) {
   
@@ -293,6 +328,8 @@ save_zip_file_to_gd_et_gcms <- ExtendedTask$new( function( directory ) {
   
 })
 
+# Download and save for Global for Google Drive.
+
 read_zip_from_gd_et_global <- ExtendedTask$new( function( directory ) {
   
   future_promise({
@@ -313,6 +350,8 @@ save_zip_file_to_gd_et_global <- ExtendedTask$new( function( directory ) {
   
 })
 
+# Download and save for Raw Data for Google Drive.
+
 read_zip_from_gd_et_raw_data <- ExtendedTask$new( function( directory ) {
   
   future_promise({
@@ -332,6 +371,8 @@ save_zip_file_to_gd_et_raw_data <- ExtendedTask$new( function( directory ) {
   }, queue = custom_work_queue )
   
 })
+
+# upload_file_to_datalab uploads a file to DataLab.
 
 upload_file_to_datalab <- function( client, env, token, name, description, dir, filename, ext, label, list_of_repoids ) {
   
@@ -387,6 +428,8 @@ upload_file_to_datalab <- function( client, env, token, name, description, dir, 
   
 }
 
+# read_file_from_datalab downloads a file from DataLab.
+
 read_file_from_datalab <- function( client, env, token, list_of_repoids, identifier, ext ) {
   
   repoid <- list_of_repoids %>% filter( Identifier == identifier ) %>% pull( RepoID )
@@ -430,6 +473,8 @@ read_file_from_datalab <- function( client, env, token, list_of_repoids, identif
   }
   
 }
+
+# updata_file_on_datalab updates a file on DataLab.
 
 update_file_on_datalab <- function( client, env, token, list_of_repoids, identifier, name, description, ext ) {
   
@@ -485,6 +530,8 @@ update_file_on_datalab <- function( client, env, token, list_of_repoids, identif
   
 }
 
+# Download and save of miscellaneous files for DataLab.
+
 read_initial_files_datalab_et <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
   future_promise({
@@ -528,6 +575,8 @@ save_initial_files_datalab_et <- ExtendedTask$new( function( client, env, token,
   
 })
 
+# Download and save of FTIR for DataLab.
+
 read_file_from_datalab_et_ftir <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
   future_promise({
@@ -560,6 +609,8 @@ save_file_to_datalab_et_ftir <- ExtendedTask$new( function( client, env, token, 
   }, queue = custom_work_queue )
   
 })
+
+# Download and save of DSC for DataLab.
 
 read_file_from_datalab_et_dsc <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
@@ -594,6 +645,8 @@ save_file_to_datalab_et_dsc <- ExtendedTask$new( function( client, env, token, l
   
 })
 
+# Download and save of TGA for DataLab.
+
 read_file_from_datalab_et_tga <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
   future_promise({
@@ -626,6 +679,8 @@ save_file_to_datalab_et_tga <- ExtendedTask$new( function( client, env, token, l
   }, queue = custom_work_queue )
   
 })
+
+# Download and save of Rheology for DataLab.
 
 read_file_from_datalab_et_rheo <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
@@ -660,6 +715,8 @@ save_file_to_datalab_et_rheo <- ExtendedTask$new( function( client, env, token, 
   
 })
 
+# Download and save of Colour for DataLab.
+
 read_file_from_datalab_et_colour <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
   future_promise({
@@ -692,6 +749,8 @@ save_file_to_datalab_et_colour <- ExtendedTask$new( function( client, env, token
   }, queue = custom_work_queue )
   
 })
+
+# Download and save of Tensile Testing for DataLab.
 
 read_file_from_datalab_et_tt <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
@@ -726,6 +785,8 @@ save_file_to_datalab_et_tt <- ExtendedTask$new( function( client, env, token, li
   
 })
 
+# Download and save of SHM for DataLab.
+
 read_file_from_datalab_et_shm <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
   future_promise({
@@ -758,6 +819,8 @@ save_file_to_datalab_et_shm <- ExtendedTask$new( function( client, env, token, l
   }, queue = custom_work_queue )
   
 })
+
+# Download and save of TlS for DataLab.
 
 read_file_from_datalab_et_tls <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
@@ -792,6 +855,8 @@ save_file_to_datalab_et_tls <- ExtendedTask$new( function( client, env, token, l
   
 })
 
+# Download and save of ESCR for DataLab.
+
 read_file_from_datalab_et_escr <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
   future_promise({
@@ -824,6 +889,8 @@ save_file_to_datalab_et_escr <- ExtendedTask$new( function( client, env, token, 
   }, queue = custom_work_queue )
   
 })
+
+# Download and save of GCMS for DataLab.
 
 read_file_from_datalab_et_gcms <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
@@ -858,6 +925,8 @@ save_file_to_datalab_et_gcms <- ExtendedTask$new( function( client, env, token, 
   
 })
 
+# Download and save of Global for DataLab.
+
 read_file_from_datalab_et_global <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   
   future_promise({
@@ -890,6 +959,8 @@ save_file_to_datalab_et_global <- ExtendedTask$new( function( client, env, token
   }, queue = custom_work_queue )
   
 })
+
+# Download and save of Raw Data for DataLab.
 
 read_file_from_datalab_et_raw_data <- ExtendedTask$new( function( client, env, token, list_of_repoids ) {
   

@@ -23,8 +23,6 @@ observeEvent( current_dataset(), {
     
   resin_data <- read_excel( paste0( paste0( directory, "List_of_Resins", current_dataset(), ".xlsx" ) ), .name_repair = "unique_quiet" )
   
-  names( resin_data )[names( resin_data ) == "Resin"] <- "Identifier"
-  
   if (0 %in% resin_data$Identifier) {
     
     resin_data <- data.frame( resin_data[-1,] %>% mutate( Identifier = as.integer( Identifier ) ), check.names = FALSE )
@@ -66,18 +64,18 @@ observeEvent( current_dataset(), {
 
 observeEvent( resin_data_r(), {
   
-  ftir_resins_r[["ftir_resins_r"]] <- resin_data_r() %>% filter( FTIR == 1 ) %>% select( "Identifier", "Label", "Name" )
-  dsc_resins_r[["dsc_resins_r"]] <- resin_data_r() %>% filter( DSC == 1 ) %>% select( "Identifier", "Label", "Name" )
-  tga_resins_r[["tga_resins_r"]] <- resin_data_r() %>% filter( TGA == 1 ) %>% select( "Identifier", "Label", "Name" )
-  rheo_resins_r[["rheo_resins_r"]] <- resin_data_r() %>% filter( Rheology == 1 ) %>% select( "Identifier", "Label", "Name" )
-  colour_resins_r[["colour_resins_r"]] <- resin_data_r() %>% filter( Colour == 1 ) %>% select( "Identifier", "Label", "Name" )
-  tt_resins_r[["tt_resins_r"]] <- resin_data_r() %>% filter( TT == 1 ) %>% select( "Identifier", "Label", "Name" )
-  shm_resins_r[["shm_resins_r"]] <- resin_data_r() %>% filter( SHM == 1 ) %>% select( "Identifier", "Label", "Name" )
-  tls_resins_r[["tls_resins_r"]] <- resin_data_r() %>% filter( TLS == 1 ) %>% select( "Identifier", "Label", "Name" )
-  escr_resins_r[["escr_resins_r"]] <- resin_data_r() %>% filter( ESCR == 1 ) %>% select( "Identifier", "Label", "Name" )
-  gcms_resins_r[["gcms_resins_r"]] <- resin_data_r() %>% filter( GCMS == 1 ) %>% select( "Identifier", "Label", "Name" )
+  ftir_resins_r[["ftir_resins_r"]] <- resin_data_r() %>% filter( FTIR == 1 ) %>% select( "Identifier", "Name", "Label" )
+  dsc_resins_r[["dsc_resins_r"]] <- resin_data_r() %>% filter( DSC == 1 ) %>% select( "Identifier", "Name", "Label" )
+  tga_resins_r[["tga_resins_r"]] <- resin_data_r() %>% filter( TGA == 1 ) %>% select( "Identifier", "Name", "Label" )
+  rheo_resins_r[["rheo_resins_r"]] <- resin_data_r() %>% filter( Rheology == 1 ) %>% select( "Identifier", "Name", "Label" )
+  colour_resins_r[["colour_resins_r"]] <- resin_data_r() %>% filter( Colour == 1 ) %>% select( "Identifier", "Name", "Label" )
+  tt_resins_r[["tt_resins_r"]] <- resin_data_r() %>% filter( TT == 1 ) %>% select( "Identifier", "Name", "Label" )
+  shm_resins_r[["shm_resins_r"]] <- resin_data_r() %>% filter( SHM == 1 ) %>% select( "Identifier", "Name", "Label" )
+  tls_resins_r[["tls_resins_r"]] <- resin_data_r() %>% filter( TLS == 1 ) %>% select( "Identifier", "Name", "Label" )
+  escr_resins_r[["escr_resins_r"]] <- resin_data_r() %>% filter( ESCR == 1 ) %>% select( "Identifier", "Name", "Label" )
+  gcms_resins_r[["gcms_resins_r"]] <- resin_data_r() %>% filter( GCMS == 1 ) %>% select( "Identifier", "Name", "Label" )
   
-  correlation_resins_r[["correlation_resins_r"]] <- resin_data_r() %>% select( "Identifier", "Label", "Name" )
+  correlation_resins_r[["correlation_resins_r"]] <- resin_data_r() %>% select( "Identifier", "Name", "Label" )
   metadata_r[["metadata_r"]] <- resin_data_r()
   
   component_analysis_resins_names( resin_data_r() %>% filter( Identifier %in% component_analysis_resins_identifiers ) %>% pull( Name ) )

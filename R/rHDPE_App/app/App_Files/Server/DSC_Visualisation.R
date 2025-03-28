@@ -69,7 +69,7 @@ observe({
     
     req( dsc_data$read_data )
     
-    specimens <- dsc_data$file_data %>% filter( Resin %in% dsc_resins_r$dsc_resins_r[getReactableState( "dsc_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- dsc_data$file_data_minus_hidden %>% filter( Resin %in% dsc_resins_r$dsc_resins_r[getReactableState( "dsc_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "dsc_select_specimens_pi", choices = specimens )
     
@@ -112,7 +112,7 @@ obtain_data_to_plot_dsc <- eventReactive( input$dsc_visualise_ab, {
   dsc_input_parameters$shiny_specimens_to_plot <- dsc_selected_specimens()
   dsc_input_parameters$shiny_split <- dsc_range()
   
-  data_to_plot <- DSC_Analysis$DSC_plotting$plot_data( dsc_input_parameters, dsc_data$data[[1]], dsc_data$data[[2]], c(), c() )
+  data_to_plot <- DSC_Analysis$DSC_plotting$plot_data( dsc_input_parameters, dsc_data$data_minus_hidden[[1]], dsc_data$data_minus_hidden[[2]], c(), c(), name_appendage = current_dataset() )
   
   max_length <- max( lengths( data_to_plot ) )
   
@@ -206,7 +206,7 @@ output$dsc_visualisation_po <- renderPlot({
     
     for (s in seq_along( dsc_selected_resins() )) {
       
-      resin_specimens <- dsc_data$file_data %>% filter( Resin == dsc_selected_resins()[s], Label %in% dsc_selected_specimens() )
+      resin_specimens <- dsc_data$file_data_minus_hidden %>% filter( Resin == dsc_selected_resins()[s], Label %in% dsc_selected_specimens() )
       
       l <- nrow( resin_specimens )
       

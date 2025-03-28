@@ -68,7 +68,7 @@ observe({
     
     req( tga_data$read_data )
     
-    specimens <- tga_data$file_data %>% filter( Resin %in% tga_resins_r$tga_resins_r[getReactableState( "tga_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- tga_data$file_data_minus_hidden %>% filter( Resin %in% tga_resins_r$tga_resins_r[getReactableState( "tga_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "tga_select_specimens_pi", choices = specimens )
     
@@ -97,7 +97,7 @@ obtain_data_to_plot_tga <- eventReactive( input$tga_visualise_ab, {
   tga_input_parameters$shiny_specimens_to_plot <- tga_selected_specimens()
   tga_input_parameters$shiny_split <- tga_range()
   
-  data.frame( TGA_Analysis$TGA_plotting$plot_data( tga_input_parameters, tga_data$data[[1]], tga_data$data[[2]], c(), c() ) )
+  data.frame( TGA_Analysis$TGA_plotting$plot_data( tga_input_parameters, tga_data$data_minus_hidden[[1]], tga_data$data_minus_hidden[[2]], c(), c(), name_appendage = current_dataset() ) )
   
 })
 
@@ -150,7 +150,7 @@ output$tga_visualisation_po <- renderPlot({
     
     for (s in seq_along( tga_selected_resins() )) {
       
-      resin_specimens <- tga_data$file_data %>% filter( Resin == tga_selected_resins()[s], Label %in% tga_selected_specimens() )
+      resin_specimens <- tga_data$file_data_minus_hidden %>% filter( Resin == tga_selected_resins()[s], Label %in% tga_selected_specimens() )
       
       l <- nrow( resin_specimens )
       

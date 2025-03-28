@@ -152,6 +152,18 @@ def read_files_and_preprocess( directory, data_directory, merge_groups ):
 
     return file_data, data
 
+def read_shiny_file( directory, filepath, filename, name_appendage = "" ):
+
+    resin_data = gu.get_list_of_resins_data( directory, name_appendage ) # Obtain the spreadsheet of data for the resins.
+
+    file_data, data = [], [[], [], [], [], []]
+
+    read_raw_data_file_1( filepath, filename, resin_data, file_data, data )
+
+    standardise_data( data )
+
+    return file_data, data
+
 def write_csv( output_directory, file_data, data, name_appendage = "" ):
     '''Write read and preprocessed data to a .csv file.'''
 

@@ -2,106 +2,72 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import matplotlib as mpl
 
 from .. import Global_Utilities as gu
 
 # Function definitions.
 
-def plot_data( ip, file_data, data, savefig = False, name_appendage = "" ):
+def plot_data( ip, file_data, data, savefig = True, name_appendage = "" ):
 
     resin_data = gu.get_list_of_resins_data( ip.directory, name_appendage )
 
-    # For overall pipeline figure.
-
-    # mpl.rcParams['lines.linewidth'] = 4
+    feature_names, features = gu.csv_to_df_to_array_and_column_titles( ip.output_directory + "SAXS/Features/Features.csv" )
 
     sample, sample_array, samples_present, samples_present_array = gu.sample_data_from_file_data( file_data )
 
-    # samples_to_plot = samples_present
-    # samples_to_plot = [1, 3, 6, 8, 9, 12, 15, 17, 24, 25]
-    samples_to_plot = [17, 24, 25]
+    samples_to_plot = samples_present
+    samples_to_plot = [16, 17, 19, 12, 15, 1, 2, 3, 5, 6, 7, 8, 9, 4, 10, 13, 11, 18, 20, 21, 22, 23]
 
-    split = False
+    specimens = False
+    all_specimens = True
+    specimen_mask = []
 
-    if not split:
+    mean = True
 
-        splits = [0, 96]
+    if mean:
 
-    if ip.shiny:
+        mean_features = gu.extract_mean_features( features, sample_array, samples_to_plot )
 
-        samples_to_plot = ip.shiny_samples_to_plot
+        std_of_features = gu.extract_std_of_features( features, sample_array, samples_to_plot )
 
-        if type( samples_to_plot ) == int:
+        bar_weights = {"Lc": mean_features[:, 3], "La": mean_features[:, 4]}
+        hatch = {"Lc": "/", "La": "*"}
 
-            samples_to_plot = [samples_to_plot]
+        y_pos = np.arange( len( mean_features[:, 0] ) )
 
-        splits = ip.shiny_split
+        colours = gu.list_of_colours()
+        colours = [colours[i] for i in samples_to_plot]
 
-    colours = gu.read_list_of_colours( ip.directory )
+        fig, ax = plt.subplots()
+        bottom = np.zeros( len( mean_features[:, 3] ) )
 
-    shiny_de = []
+        for label, weight in bar_weights.items():
 
-    data_extraction_bool = False
+            ax.bar( y_pos, weight, label = label, bottom = bottom, align = 'center', alpha = 0.5, color = colours, edgecolor = "black", hatch = hatch[label] )
 
-    plt.figure( figsize = (10, 8) )
+            bottom += weight
 
-    for s in range( len( splits ) - 1 ):
+        # plt.bar( y_pos, mean_features[:, 0], align = 'center', alpha = 0.5, color = colours )
 
-        data_extraction = []
+        plt.xticks( y_pos, [resin_data.loc[i]["Label"] for i in samples_to_plot], rotation = 90 )
 
-        lower_bound, upper_bound = splits[s], splits[s + 1]
+        legend_1 = mpatches.Patch( facecolor = "white", edgecolor = "black", hatch = "/",label = "lc" )
+        legend_2 = mpatches.Patch( facecolor = "white", edgecolor = "black", hatch = "*",label = "la" )
+        plt.legend( handles = [legend_1, legend_2] )
 
-        for i in samples_to_plot:
-
-            mask = np.where( sample_array == i )[0]
-
-            for j in mask:
-
-                if file_data[j][0] == 3 or file_data[j][0] == 9:
-
-                    hour_mask = np.where( (data[2] <= upper_bound) & (data[2] >= lower_bound) )[0]
-
-                    plt.plot( data[2][hour_mask], data[1][j][[3, 6, 7, 8]][hour_mask], label = resin_data.loc[i]["Label"], color = colours[i] )
-
-                    shiny_de.append( data[2][hour_mask].tolist() )
-                    shiny_de.append( data[1][j][[3, 6, 7, 8]][hour_mask].tolist() )
-
-                else:
-
-                    hour_mask = np.where( (data[0] <= upper_bound) & (data[0] >= lower_bound) )[0]
-
-                    plt.plot( data[0][hour_mask], data[1][j][hour_mask], label = resin_data.loc[i]["Label"], color = colours[i] )
-
-                    shiny_de.append( data[0][hour_mask].tolist() )
-                    shiny_de.append( data[1][j][hour_mask].tolist() )
-
-        if ip.shiny:
-
-            return shiny_de
-
-        plt.legend( ncol = 2, bbox_to_anchor = ( 1.05, 1 ), loc = 'upper left', borderaxespad = 0, fontsize = 18 )
-        # plt.legend( ncol = 2, fontsize = 18, bbox_to_anchor = ( 1.05, 1 ) )
-
-        plt.xlabel( "Time [Hours]", fontsize = 18 )
-        plt.ylabel( "Bottle Success Rate [%]", fontsize = 18 )
-        plt.xticks( fontsize = 18 )
-        plt.yticks( fontsize = 18 )
-
+        # plt.xlabel( xlabel )
+        plt.ylabel( "d" )
+        # plt.title( title )
+        #
+        # plt.ylim( [55, 75] )
+        #
         plt.tight_layout()
-
-        # For overall pipeline figure.
-
-        # ax = plt.gca()
-        # ax.get_legend().remove()
-        # plt.xlabel( "" )
-        # plt.ylabel( "" )
-        # plt.tick_params( axis = 'x', which = 'both', bottom = False, top = False, labelbottom = False )
-        # plt.tick_params( axis = 'y', which = 'both', left = False, right = False, labelleft = False )
-
+        #
         if savefig:
 
-            plt.savefig( ip.output_directory + "ESCR/Plots/Plot.pdf" )
+            plt.savefig( ip.output_directory + "SAXS/Plots/Plot.pdf" )
 
         else:
 
@@ -109,14 +75,4 @@ def plot_data( ip, file_data, data, savefig = False, name_appendage = "" ):
 
         plt.close()
 
-        if data_extraction_bool:
 
-            array = data_extraction[0][:, np.newaxis]
-
-            for i in range( 1, len( data_extraction ) ):
-
-                array = np.hstack( (array, data_extraction[i][:, np.newaxis]) )
-
-            np.savetxt( ip.output_directory + "Plot_Coords/Unnamed.txt", array )
-
-    return shiny_de

@@ -1,4 +1,5 @@
 setup.py
+rHDPE_Data_Analysis/Deprecated.py
 rHDPE_Data_Analysis/Global_Utilities.py
 rHDPE_Data_Analysis/__init__.py
 rHDPE_Data_Analysis.egg-info/PKG-INFO
@@ -37,6 +38,12 @@ rHDPE_Data_Analysis/GCMS_Analysis/Input_Parameters_Class.py
 rHDPE_Data_Analysis/GCMS_Analysis/Preprocessing.py
 rHDPE_Data_Analysis/GCMS_Analysis/Utilities.py
 rHDPE_Data_Analysis/GCMS_Analysis/__init__.py
+rHDPE_Data_Analysis/GPC_Analysis/Analysis.py
+rHDPE_Data_Analysis/GPC_Analysis/GPC_plotting.py
+rHDPE_Data_Analysis/GPC_Analysis/Input_Parameters_Class.py
+rHDPE_Data_Analysis/GPC_Analysis/Preprocessing.py
+rHDPE_Data_Analysis/GPC_Analysis/Utilities.py
+rHDPE_Data_Analysis/GPC_Analysis/__init__.py
 rHDPE_Data_Analysis/Global_Analysis/Analysis.py
 rHDPE_Data_Analysis/Global_Analysis/Input_Parameters_Class.py
 rHDPE_Data_Analysis/Global_Analysis/Preprocessing.py

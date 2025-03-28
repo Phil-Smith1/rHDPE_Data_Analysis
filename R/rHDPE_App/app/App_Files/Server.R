@@ -1,16 +1,10 @@
 #===============
+# The main object in this file is server, which is then passed to the shinyApp() function in app.R.
+
+#===============
 # Server
 
 server <- function( input, output, session ) {
-  
-  #===============
-  # Set token to empty string when deployed on shinyapps.
-
-  if (app_user == "shiny") {
-
-    token <- ""
-
-  }
 
   #===============
   # Using thematic package.
@@ -32,9 +26,9 @@ server <- function( input, output, session ) {
 
   if (include_login) {
 
-    credentials <- shinyauthr::loginServer( id = "login", data = user_base, user_col = user, pwd_col = password, sodium_hashed = TRUE, log_out = reactive( logout_init() ) )
+    credentials <- loginServer( id = "login", data = user_base, user_col = user, pwd_col = password, sodium_hashed = TRUE, log_out = reactive( logout_init() ) )
 
-    logout_init <- shinyauthr::logoutServer( id = "logout", active = reactive( credentials()$user_auth ) )
+    logout_init <- logoutServer( id = "logout", active = reactive( credentials()$user_auth ) )
 
   }
 
@@ -158,12 +152,9 @@ server <- function( input, output, session ) {
 
   #===============
   # DataLab tab server code.
-
-  if (app_user != "shiny") {
-
-    source( here::here( "DataLab_Files/DataLab_Server.R" ), local = TRUE )
-
-  }
+  
+  if (app_user == "shiny") { token <- "" # Set token to empty string when deployed on shinyapps.
+  } else if (app_user != "shiny") source( here::here( "DataLab_Files/DataLab_Server.R" ), local = TRUE )
 
   #===============
   # Dev tab server code.

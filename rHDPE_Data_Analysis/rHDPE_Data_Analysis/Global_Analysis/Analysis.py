@@ -47,6 +47,10 @@ def Global_Analysis_Main( ip ):
 
         util.distance_to_virgin_analysis_based_on_pcas( ip.output_directory, features_df )
 
+    if ip.huang_brown_model:
+
+        util.huang_brown_model( ip )
+
     if ip.manual_ml:
 
         util.manual_ml( ip.directory, ip, features_df )

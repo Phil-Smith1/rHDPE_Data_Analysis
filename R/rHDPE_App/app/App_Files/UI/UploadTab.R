@@ -4,29 +4,35 @@ uploadTab <- tabPanel( "Upload",
                     
   fluidPage(
     
-    wellPanel(
+    sidebarLayout(
       
-      textOutput( "upload_experiment_to" ),
+      sidebarPanel(
+        
+        wellPanel( actionButton( "upload_select_files_ab", "Select Files to Upload", width = "100%" ) ),
+        
+        wellPanel( actionButton( "upload_change_metadata_ab", "Edit Metadata of Files to Upload", width = "100%" ) ),
+        
+        wellPanel( fluidRow( column( 12, input_task_button( "upload_itb", "Upload Files", label_busy = "Uploading..." ), align = "center" ) ) )
+        
+      ),
       
-      textOutput( "upload_select_files_to" ),
+      mainPanel(
+        
+        wellPanel(
+          
+          textOutput( "upload_experiment_to" ),
+          
+          br(),
+          
+          p( "The files to be uploaded are:" ),
+          
+          tableOutput( "upload_info_to" )
+          
+        ),
+        
+      )
       
-      br(),
-      
-      actionButton( "upload_select_files_ab", "Change Files to Upload" ),
-      
-      actionButton( "upload_change_metadata_ab", "Change Metadata of Files to Upload" ),
-      
-      br(),
-      
-      p( "The files to be uploaded are:" ),
-      
-      tableOutput( "upload_info_to" )
-      
-    ),
-    
-    br(),
-    
-    wellPanel( fluidRow( column( 12, input_task_button( "upload_itb", "Upload Files", label_busy = "Uploading..." ), align = "center" ) ) )
+    )
     
     # wellPanel( fluidRow( column( 12, bsButton( "upload_ab", "Upload Files" ), align = "center" ) ) )
     

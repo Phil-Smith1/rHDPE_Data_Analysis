@@ -63,7 +63,7 @@ obtain_data_to_plot_escr <- eventReactive( input$escr_visualise_ab, {
   escr_input_parameters$shiny_samples_to_plot <- escr_selected_resins()
   escr_input_parameters$shiny_split <- escr_range()
   
-  data_to_plot <- ESCR_Analysis$ESCR_plotting$plot_data( escr_input_parameters, escr_data$data[[1]], escr_data$data[[2]] )
+  data_to_plot <- ESCR_Analysis$ESCR_plotting$plot_data( escr_input_parameters, escr_data$data_minus_hidden[[1]], escr_data$data_minus_hidden[[2]], name_appendage = current_dataset() )
   
   max_length <- max( lengths( data_to_plot ) )
   

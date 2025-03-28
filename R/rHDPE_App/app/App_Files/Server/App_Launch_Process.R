@@ -1,10 +1,11 @@
+#===============
 # Server code for process app goes through when launched.
 
 #===============
-# Prelaunch
+# Code
 
-prelaunch <- reactiveVal()
-list_of_repoids <- reactiveVal()
+prelaunch <- reactiveVal() # Simply a reactive value that triggers events just by being initialised.
+list_of_repoids <- reactiveVal() # Stores the list of repository IDs of files on DataLab.
 
 # Code for reading the file containing the list of repository IDs, and using it to import the latest list of repository IDs from DataLab.
 # In this observeEvent, the code is run before the app has finished being initialised.
@@ -81,65 +82,108 @@ raw_data <- reactiveValues( download_data = FALSE, read_data = FALSE, compute_fe
 
 download_progress <- NULL
 
-observeEvent( signin_complete(), {
+if (app_user != "shiny") {
   
-  if (app_user == "philsmith") {
+  observeEvent( signin_complete(), {
     
-    initial_files$download_data <- TRUE
-    ftir_data$download_data <- TRUE
-    dsc_data$download_data <- TRUE
-    tga_data$download_data <- TRUE
-    rheo_data$download_data <- TRUE
-    colour_data$download_data <- TRUE
-    tt_data$download_data <- TRUE
-    shm_data$download_data <- TRUE
-    escr_data$download_data <- TRUE
-    tls_data$download_data <- TRUE
-    gcms_data$download_data <- TRUE
-    global_data$download_data <- TRUE
-    raw_data$download_data <- TRUE
+    if (app_user == "philsmith") {
+      
+      initial_files$download_data <- TRUE
+      ftir_data$download_data <- TRUE
+      dsc_data$download_data <- TRUE
+      tga_data$download_data <- TRUE
+      rheo_data$download_data <- TRUE
+      colour_data$download_data <- TRUE
+      tt_data$download_data <- TRUE
+      shm_data$download_data <- TRUE
+      escr_data$download_data <- TRUE
+      tls_data$download_data <- TRUE
+      gcms_data$download_data <- TRUE
+      global_data$download_data <- TRUE
+      raw_data$download_data <- TRUE
+      
+    } else if (app_user == "docker") {
+      
+      download_progress <<- shiny::Progress$new()
+      download_progress$set( message = "Downloading Files", value = 0 )
+      
+      read_initial_files_datalab_et$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_ftir$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_dsc$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_tga$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_rheo$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_colour$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_tt$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_shm$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_tls$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_escr$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_gcms$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_global$invoke( client, env, token, list_of_repoids() )
+      read_file_from_datalab_et_raw_data$invoke( client, env, token, list_of_repoids() )
+      
+    }
     
-  } else if (app_user == "shiny") {
+  }, ignoreInit = TRUE )
+  
+} else {
+  
+  if (nbrOfWorkers() == 1) {
     
-    download_progress <<- shiny::Progress$new()
-    download_progress$set( message = "Downloading Files", value = 0 )
+    observeEvent( signin_complete(), {
+      
+      download_progress <<- shiny::Progress$new()
+      download_progress$set( message = "Downloading Files", value = 0 )
+      
+    }, ignoreInit = TRUE )
     
-    read_initial_files_gd_et$invoke( directory )
-    read_zip_from_gd_et_ftir$invoke( directory )
-    read_zip_from_gd_et_dsc$invoke( directory )
-    read_zip_from_gd_et_tga$invoke( directory )
-    read_zip_from_gd_et_rheo$invoke( directory )
-    read_zip_from_gd_et_colour$invoke( directory )
-    read_zip_from_gd_et_tt$invoke( directory )
-    read_zip_from_gd_et_shm$invoke( directory )
-    read_zip_from_gd_et_tls$invoke( directory )
-    read_zip_from_gd_et_escr$invoke( directory )
-    read_zip_from_gd_et_gcms$invoke( directory )
-    read_zip_from_gd_et_global$invoke( directory )
-    read_zip_from_gd_et_raw_data$invoke( directory )
+    control_download_on_shinyapps <- reactiveVal( 0 )
     
-  } else if (app_user == "docker") {
+    observe({
+      
+      req( signin_complete() )
+      
+      if (isolate( control_download_on_shinyapps() ) == 0) { read_initial_files_gd_et$invoke( directory ); control_download_on_shinyapps( 1 ) }
+      if (initial_files$download_data && isolate( control_download_on_shinyapps() ) == 1) { read_zip_from_gd_et_ftir$invoke( directory ); control_download_on_shinyapps( 2 ) }
+      if (ftir_data$download_data && isolate( control_download_on_shinyapps() ) == 2) { read_zip_from_gd_et_dsc$invoke( directory ); control_download_on_shinyapps( 3 ) }
+      if (dsc_data$download_data && isolate( control_download_on_shinyapps() ) == 3) { read_zip_from_gd_et_tga$invoke( directory ); control_download_on_shinyapps( 4 ) }
+      if (tga_data$download_data && isolate( control_download_on_shinyapps() ) == 4) { read_zip_from_gd_et_rheo$invoke( directory ); control_download_on_shinyapps( 5 ) }
+      if (rheo_data$download_data && isolate( control_download_on_shinyapps() ) == 5) { read_zip_from_gd_et_colour$invoke( directory ); control_download_on_shinyapps( 6 ) }
+      if (colour_data$download_data && isolate( control_download_on_shinyapps() ) == 6) { read_zip_from_gd_et_tt$invoke( directory ); control_download_on_shinyapps( 7 ) }
+      if (tt_data$download_data && isolate( control_download_on_shinyapps() ) == 7) { read_zip_from_gd_et_shm$invoke( directory ); control_download_on_shinyapps( 8 ) }
+      if (shm_data$download_data && isolate( control_download_on_shinyapps() ) == 8) { read_zip_from_gd_et_tls$invoke( directory ); control_download_on_shinyapps( 9 ) }
+      if (tls_data$download_data && isolate( control_download_on_shinyapps() ) == 9) { read_zip_from_gd_et_escr$invoke( directory ); control_download_on_shinyapps( 10 ) }
+      if (escr_data$download_data && isolate( control_download_on_shinyapps() ) == 10) { read_zip_from_gd_et_gcms$invoke( directory ); control_download_on_shinyapps( 11 ) }
+      if (gcms_data$download_data && isolate( control_download_on_shinyapps() ) == 11) { read_zip_from_gd_et_global$invoke( directory ); control_download_on_shinyapps( 12 ) }
+      if (global_data$download_data && isolate( control_download_on_shinyapps() ) == 12) { read_zip_from_gd_et_raw_data$invoke( directory ); control_download_on_shinyapps( 13 ) }
+      
+    })
     
-    download_progress <<- shiny::Progress$new()
-    download_progress$set( message = "Downloading Files", value = 0 )
+  } else {
     
-    read_initial_files_datalab_et$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_ftir$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_dsc$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_tga$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_rheo$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_colour$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_tt$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_shm$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_tls$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_escr$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_gcms$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_global$invoke( client, env, token, list_of_repoids() )
-    read_file_from_datalab_et_raw_data$invoke( client, env, token, list_of_repoids() )
+    observeEvent( signin_complete(), {
+        
+      download_progress <<- shiny::Progress$new()
+      download_progress$set( message = "Downloading Files", value = 0 )
+      
+      read_initial_files_gd_et$invoke( directory )
+      read_zip_from_gd_et_ftir$invoke( directory )
+      read_zip_from_gd_et_dsc$invoke( directory )
+      read_zip_from_gd_et_tga$invoke( directory )
+      read_zip_from_gd_et_rheo$invoke( directory )
+      read_zip_from_gd_et_colour$invoke( directory )
+      read_zip_from_gd_et_tt$invoke( directory )
+      read_zip_from_gd_et_shm$invoke( directory )
+      read_zip_from_gd_et_tls$invoke( directory )
+      read_zip_from_gd_et_escr$invoke( directory )
+      read_zip_from_gd_et_gcms$invoke( directory )
+      read_zip_from_gd_et_global$invoke( directory )
+      read_zip_from_gd_et_raw_data$invoke( directory )
+      
+    }, ignoreInit = TRUE )
     
   }
   
-}, ignoreInit = TRUE )
+}
 
 # Read dataset versions once initial files have been read.
 
@@ -253,4 +297,4 @@ observe({
     
   }
   
-})
+}, priority = 1 )

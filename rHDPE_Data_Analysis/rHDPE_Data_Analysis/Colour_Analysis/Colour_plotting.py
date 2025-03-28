@@ -12,7 +12,7 @@ def plot_data( ip, file_data, data, savefig = False, name_appendage = "" ):
 
     resin_data = gu.get_list_of_resins_data( ip.directory, name_appendage )
 
-    feature_names, features = gu.csv_to_df_to_array_and_column_titles( ip.output_directory + "Colour/Features/Features.csv" )
+    feature_names, features = gu.csv_to_df_to_array_and_column_titles( ip.output_directory + "Colour/Features/Features" + name_appendage + ".csv" )
 
     sample, sample_array, samples_present, samples_present_array = gu.sample_data_from_file_data( file_data )
 

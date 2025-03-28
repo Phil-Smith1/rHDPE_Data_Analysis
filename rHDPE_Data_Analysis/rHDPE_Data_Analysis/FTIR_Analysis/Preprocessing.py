@@ -332,48 +332,13 @@ def read_shiny_file( directory, filepath, filename, name_appendage = "" ):
 
     resin_data = gu.get_list_of_resins_data( directory, name_appendage ) # Obtain the spreadsheet of data for the resins.
 
-    pattern = re.compile( r"^Resin(\d+)_(\d+)_" )
-
-    resin = int( pattern.search( filename ).groups()[0] )
-
-    specimen = int( pattern.search( filename ).groups()[1] )
-
-    with open( filepath, 'r' ) as file:
-
-        x, y = [], []
-
-        lines = file.readlines()
-
-        for line in lines:
-
-            a_list = line.split()
-
-            if a_list:
-
-                map_object = map( float, a_list )
-                list_of_floats = list( map_object )
-
-                if list_of_floats[0] <= 3996.26214 and list_of_floats[0] >= 599.82506:
-
-                    x.append( list_of_floats[0] )
-                    y.append( list_of_floats[1] )
-
-            else:
-
-                break
-
     file_data, data = [], [[], []]
 
-    data[0].append( np.array( x ) )
-    data[1].append( np.array( y ) )
+    read_raw_data_file_1( filepath, filename, resin_data, file_data, data )
 
     standardise_data( data )
 
-    data[1][0] = data[1][0]
-
-    file_data.append( [resin, specimen, resin_data.loc[resin]["Label"] + ".{}".format( specimen ), ""] )
-
-    return file_data, data[1]
+    return file_data, data
 
 def write_csv( output_directory, file_data, data, name_appendage = "" ):
     '''Write read and preprocessed data to a .csv file.'''

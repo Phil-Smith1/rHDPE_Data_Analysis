@@ -67,7 +67,7 @@ observe({
     
     req( tls_data$read_data )
     
-    specimens <- tls_data$file_data %>% filter( Resin %in% tls_resins_r$tls_resins_r[getReactableState( "tls_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- tls_data$file_data_minus_hidden %>% filter( Resin %in% tls_resins_r$tls_resins_r[getReactableState( "tls_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "tls_select_specimens_pi", choices = specimens )
     
@@ -81,7 +81,7 @@ obtain_data_to_plot_tls <- eventReactive( input$tls_visualise_ab, {
   tls_input_parameters$shiny_specimens_to_plot <- tls_selected_specimens()
   tls_input_parameters$shiny_split <- tls_range()
   
-  data_to_plot <- TLS_Analysis$TLS_plotting$plot_data( tls_input_parameters, tls_data$data[[1]], tls_data$data[[2]], c(), c() )
+  data_to_plot <- TLS_Analysis$TLS_plotting$plot_data( tls_input_parameters, tls_data$data_minus_hidden[[1]], tls_data$data_minus_hidden[[2]], c(), c(), name_appendage = current_dataset() )
   
   max_length <- max( lengths( data_to_plot ) )
   
@@ -125,7 +125,7 @@ output$tls_visualisation_po <- renderPlot({
   
   for (s in seq_along( tls_selected_resins() )) {
     
-    resin_specimens <- tls_data$file_data %>% filter( Resin == tls_selected_resins()[s], Label %in% tls_selected_specimens() )
+    resin_specimens <- tls_data$file_data_minus_hidden %>% filter( Resin == tls_selected_resins()[s], Label %in% tls_selected_specimens() )
     
     l <- nrow( resin_specimens )
     

@@ -36,6 +36,8 @@ class Input_Parameters():
 
         self.rank_resins_by_pp_content = False
 
+        self.huang_brown_model = False
+
         self.manual_ml = False
 
         self.pca_ml = False
@@ -84,8 +86,10 @@ def read_parameters_from_numbers_file( filename, ip ):
 
     ip.rank_resins_by_pp_content = bool( rows[11][1].value )
 
-    ip.manual_ml = bool( rows[12][1].value )
+    ip.huang_brown_model = bool( rows[12][1].value )
 
-    ip.pca_ml = bool( rows[13][1].value )
+    ip.manual_ml = bool( rows[13][1].value )
 
-    ip.sandbox = bool( rows[14][1].value )
+    ip.pca_ml = bool( rows[14][1].value )
+
+    ip.sandbox = bool( rows[15][1].value )

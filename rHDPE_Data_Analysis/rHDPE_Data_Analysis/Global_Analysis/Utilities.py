@@ -15,6 +15,7 @@ from math import sqrt
 from sklearn.metrics import r2_score
 import math
 from sklearn import datasets, linear_model
+import scipy.integrate as integrate
 
 from . import Preprocessing
 from .. import Global_Utilities as gu
@@ -151,9 +152,122 @@ def scatterplots( ip, features_df, std_of_features_df ):
 
         print( "The Pearson correlation coefficient is:", corr )
 
-        gu.plot_scatterplot_of_two_features( ip.directory, feature_1, feature_2, features_df.index, [resin_data.loc[i]["Label"] for i in features_df.index], errorbars = True, std = std, line_of_best_fit = True, exponential_fit = False, xlabel = features_metadata.loc[ip.scatterplot_x]["Axis_Label"], ylabel = features_metadata.loc[ip.scatterplot_y]["Axis_Label"], savefig = True, filename = ip.output_directory + "Global/Scatterplots/New_Figure.pdf" )
+        gu.plot_scatterplot_of_two_features( ip.directory, feature_1, feature_2, features_df.index, [resin_data.loc[i]["Label"] for i in features_df.index], errorbars = True, std = std, line_of_best_fit = False, exponential_fit = False, xlabel = features_metadata.loc[ip.scatterplot_x]["Axis_Label"], ylabel = features_metadata.loc[ip.scatterplot_y]["Axis_Label"], savefig = True, filename = ip.output_directory + "Global/Scatterplots/New_Figure.pdf" )
 
     return feature_1.tolist(), feature_2.tolist(), std[0].tolist(), std[1].tolist()
+
+def huang_brown_model_formula( lc, la, M ):
+
+    l_crit = 2 * lc + la
+    r02 = 1.25 * M
+    b2 = 3 / (2 * r02)
+
+    numerator = integrate.quad( lambda r: r * r * math.exp(-b2 * r * r), l_crit, np.inf )[0]
+    denomenator = integrate.quad( lambda r: r * r * math.exp(-b2 * r * r), 0, np.inf )[0]
+
+    tie_fraction = numerator / (3 * denomenator)
+
+    return tie_fraction
+
+def huang_brown_model( ip, name_appendage = "" ):
+
+    file_data = []
+
+    df = pd.read_csv( ip.output_directory + "GPC/Condensed_Data/file_data" + name_appendage + ".csv", sep = ",", header = None )
+
+    for i in range( len( df.index ) ):
+
+        resin = int( df.iloc[i, 0] )
+        specimen = int( df.iloc[i, 1] )
+
+        file_data.append( [resin, specimen, "", ""] )
+
+    saxs_df, _ = gu.read_csv_pipeline( ip, "SAXS/Features/", "Mean_Features_Unnormalised" + name_appendage + ".csv", False )
+    gpc_df, _ = gu.read_csv_pipeline( ip, "GPC/Features/", "Features" + name_appendage + ".csv", False )
+
+    tie_molecule_fraction = []
+    resin = []
+    specimen = []
+
+    for i in range( len( file_data ) ):
+
+        saxs_sample = saxs_df.loc[saxs_df["sample"] == file_data[i][0]]
+
+        if saxs_sample.shape[0] != 0:
+
+            lc = saxs_sample["SAXS_lc"].iloc[0]
+            la = saxs_sample["SAXS_la"].iloc[0]
+            Mn = gpc_df["GPC_Mn"].iloc[i]
+
+            tie_molecule_fraction.append( huang_brown_model_formula( lc, la, Mn ) )
+            resin.append( file_data[i][0] )
+            specimen.append( file_data[i][1] )
+
+    file_data = []
+
+    for i in range( len( tie_molecule_fraction ) ):
+
+        file_data.append( [resin[i], specimen[i], "", ""] )
+
+    array = np.array( file_data )
+
+    np.savetxt( ip.output_directory + "Global/TM/file_data" + name_appendage + ".csv", array, delimiter = ",", fmt = "%s" )
+
+    features = np.array( tie_molecule_fraction )[:, np.newaxis]
+    feature_names = ["SAXS_TM_Fraction"]
+
+    df = gu.array_with_column_titles_to_df( features, feature_names )
+
+    df.to_csv( ip.output_directory + "Global/TM/Features" + name_appendage + ".csv" )
+
+    sample, sample_array, samples_present, samples_present_array = gu.sample_data_from_file_data( file_data )
+
+    sample_mask = [11, 10, 4, 13, 21, 23, 18, 22, 20, 2, 3, 17, 16, 19, 1, 15, 12, 6, 5, 7, 9, 8]
+
+    sample_mask = gu.remove_redundant_samples( sample_mask, samples_present )
+
+    mean_features_unnormalised = gu.extract_mean_features( features, sample_array, samples_present )
+    mean_feature_names = feature_names.copy()
+
+    mean_features_unnormalised_plus_sample_mask = np.hstack( (samples_present_array[:, np.newaxis], mean_features_unnormalised) )
+
+    df = gu.array_with_column_titles_to_df( mean_features_unnormalised_plus_sample_mask, ["sample"] + mean_feature_names )
+
+    df.to_csv( ip.output_directory + "Global/TM/Mean_Features_Unnormalised" + name_appendage + ".csv" )
+
+    std_of_features = gu.extract_std_of_features( features, sample_array, samples_present )
+
+    std_of_features_plus_sample_mask = np.hstack( (samples_present_array[:, np.newaxis], std_of_features) )
+
+    df = gu.array_with_column_titles_to_df( std_of_features_plus_sample_mask, ["sample"] + mean_feature_names )
+
+    df.to_csv( ip.output_directory + "Global/TM/Std_of_Features_Unnormalised" + name_appendage + ".csv" )
+
+    specimen_mask = gu.produce_mask( sample_array, sample_mask )
+
+    features = features[specimen_mask, :]
+    file_data_mask = np.array( file_data )[specimen_mask] # Orders file data according to specimen mask.
+    file_data_mask = [[int( f[0] ), int( f[1] ), f[2], f[3]] for f in file_data_mask] # Converts file data so that f[0], etc. are integers and not np.str.
+    sample_array = sample_array[specimen_mask]
+
+    gu.normalise_features( features )
+
+    mean_features = gu.extract_mean_features( features, sample_array, sample_mask )
+    mean_feature_names = feature_names.copy()
+
+    std_of_features = gu.extract_std_of_features( features, sample_array, sample_mask )
+
+    mean_features_plus_sample_mask = np.hstack( (np.array( sample_mask )[:, np.newaxis], mean_features) )
+
+    df = gu.array_with_column_titles_to_df( mean_features_plus_sample_mask, ["sample"] + mean_feature_names )
+
+    df.to_csv( ip.output_directory + "Global/TM/Mean_Features" + name_appendage + ".csv" )
+
+    std_of_features_plus_sample_mask = np.hstack( (np.array( sample_mask )[:, np.newaxis], std_of_features) )
+
+    df = gu.array_with_column_titles_to_df( std_of_features_plus_sample_mask, ["sample"] + mean_feature_names )
+
+    df.to_csv( ip.output_directory + "Global/TM/Std_of_Features" + name_appendage + ".csv" )
 
 def correlation_heatmap( df, spearman = False ):
 
@@ -266,12 +380,38 @@ def distance_to_virgin_rank( resin_data, distance_to_virgin, virgin_samples, sam
 
 def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
 
+    if ip.sample_mask == None:
+
+        ip.sample_mask = []
+
+    if type( ip.datasets_to_read ) == int:
+
+        ip.datasets_to_read = [ip.datasets_to_read]
+
+    dataset_names = ["FTIR", "DSC", "TGA", "Rhe", "TT", "Colour", "SHM", "TLS", "ESCR"]
+
     resin_data = gu.get_list_of_resins_data( ip.directory, name_appendage ) # Obtain the spreadsheet of data for the resins.
 
     features_df_copy, std_of_features_df_copy = features_df, std_of_features_df
 
     pca_of_whole_dataset = False
     pca_of_pca_of_individual_datasets = True
+
+    features_split_by_dataset_df, std_split_by_dataset_df = [], []
+
+    for i, n in enumerate( dataset_names ):
+
+        if i + 1 not in ip.datasets_to_read:
+
+            continue
+
+        df = features_df_copy.filter( regex = r"^" + n )
+
+        features_split_by_dataset_df.append( df )
+
+        df = std_of_features_df_copy.filter( regex = r"^" + n )
+
+        std_split_by_dataset_df.append( df )
 
     if ip.shiny:
 
@@ -287,31 +427,19 @@ def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
 
     if pca_of_whole_dataset:
 
-        pca_ft_df, pca_std, components, pca_feature_names = gu.perform_pca( ip.directory, features_df_copy, [int( i ) for i in features_df_copy.index], std_error = True, std_of_features_df = std_of_features_df_copy, num_components = 2, filename = ip.output_directory + "Global/PCA/Overall.pdf", name_appendage = name_appendage )
+        features_df_copy = pd.concat( [i for i in features_split_by_dataset_df], axis = 1 )
+        std_of_features_df_copy = pd.concat( [i for i in std_split_by_dataset_df], axis = 1 )
 
-        return pca_ft_df.index.tolist(), pca_ft_df[pca_ft_df.columns[0]].tolist(), pca_ft_df[pca_ft_df.columns[1]].tolist(), np.array( pca_std[0] ).tolist(), np.array( pca_std[1] ).tolist(), components[:, 0].tolist(), components[:, 1].tolist(), pca_feature_names
+        pca_ft_df, pca_std, components, pca_feature_names, pc_contributions, feature_coefficients = gu.perform_pca( ip.directory, features_df_copy, [int( i ) for i in features_df_copy.index], std_error = True, std_of_features_df = std_of_features_df_copy, num_components = 2, filename = ip.output_directory + "Global/PCA/Overall.pdf", name_appendage = name_appendage )
+
+        return pca_ft_df.index.tolist(), pca_ft_df[pca_ft_df.columns[0]].tolist(), pca_ft_df[pca_ft_df.columns[1]].tolist(), np.array( pca_std[0] ).tolist(), np.array( pca_std[1] ).tolist(), components[:, 0].tolist(), components[:, 1].tolist(), pca_feature_names, pc_contributions, feature_coefficients
 
     if pca_of_pca_of_individual_datasets:
 
         compute_distance_to_virgin = False
-
         perform_k_means = False
 
-        dataset_names = ["FTIR", "DSC", "TGA", "Rhe", "TT", "Colour", "SHM", "TLS", "ESCR"]
-
         sample_mask = features_df_copy.index.to_list()
-
-        features_split_by_dataset_df, std_split_by_dataset_df = [], []
-
-        for i, n in enumerate( dataset_names ):
-
-            df = features_df_copy.filter( regex = r"^" + n )
-
-            features_split_by_dataset_df.append( df )
-
-            df = std_of_features_df_copy.filter( regex = r"^" + n )
-
-            std_split_by_dataset_df.append( df )
 
         pcas, stds = [], []
 
@@ -324,7 +452,7 @@ def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
                 pca = PCA( n_components = num_components )
                 pca_ft = pca.fit_transform( features_split_by_dataset_df[i] )
 
-                gu.pca_analysis( pca, features_split_by_dataset_df[i] )
+                # gu.pca_analysis( pca, features_split_by_dataset_df[i] )
 
                 std = [[] for n in range( num_components )]
 
@@ -342,8 +470,8 @@ def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
 
                 std_array = np.array( std ).transpose()
 
-                pcas.append( gu.array_with_column_titles_and_label_titles_to_df( pca_ft, [dataset_names[i] + "_PC1", dataset_names[i] + "_PC2"], sample_mask ) )
-                stds.append( gu.array_with_column_titles_and_label_titles_to_df( std_array, [dataset_names[i] + "_PC1", dataset_names[i] + "_PC2"], sample_mask ) )
+                pcas.append( gu.array_with_column_titles_and_label_titles_to_df( pca_ft, [dataset_names[ip.datasets_to_read[i] - 1] + "_PC1", dataset_names[ip.datasets_to_read[i] - 1] + "_PC2"], sample_mask ) )
+                stds.append( gu.array_with_column_titles_and_label_titles_to_df( std_array, [dataset_names[ip.datasets_to_read[i] - 1] + "_PC1", dataset_names[ip.datasets_to_read[i] - 1] + "_PC2"], sample_mask ) )
 
             elif len( features_split_by_dataset_df[i].columns ) == 1:
 
@@ -357,7 +485,7 @@ def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
 
         pcas_to_include, stds_to_include = [], []
 
-        for i in range( len( dataset_names ) ):
+        for i in range( len( ip.datasets_to_read ) ):
 
             if not pcas[i].empty:
 
@@ -385,7 +513,7 @@ def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
 
         if num_components <= 1:
 
-            return False, False, False, False, False, False, False
+            return False, False, False, False, False, False, False, False, False, False
 
         if len( pcas_to_include ) != 1:
 
@@ -399,11 +527,11 @@ def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
 
         if ip.shiny:
 
-            pca_ft_df, pca_std, components, pca_feature_names = gu.perform_pca( ip.directory, overall_pca_df, [int( i ) for i in overall_pca_df.index], std_error = True, std_of_features_df = overall_stds_df, num_components = 2, filename = ip.output_directory + "Global/PCA/Overall.png", name_appendage = name_appendage )
+            pca_ft_df, pca_std, components, pca_feature_names, pc_contributions, feature_coefficients = gu.perform_pca( ip.directory, overall_pca_df, [int( i ) for i in overall_pca_df.index], std_error = True, std_of_features_df = overall_stds_df, num_components = 2, filename = ip.output_directory + "Global/PCA/Overall.png", shiny = True, name_appendage = name_appendage )
 
         else:
 
-            pca_ft_df, pca_std, components, pca_feature_names = gu.perform_pca( ip.directory, overall_pca_df, [int( i ) for i in overall_pca_df.index], std_error = True, std_of_features_df = overall_stds_df, num_components = 2, filename = ip.output_directory + "Global/PCA/Overall.pdf", name_appendage = name_appendage )
+            pca_ft_df, pca_std, components, pca_feature_names, pc_contributions, feature_coefficients = gu.perform_pca( ip.directory, overall_pca_df, [int( i ) for i in overall_pca_df.index], std_error = True, std_of_features_df = overall_stds_df, num_components = 2, filename = ip.output_directory + "Global/PCA/Overall.pdf", name_appendage = name_appendage )
 
         pca_ft = pca_ft_df.to_numpy()
 
@@ -432,7 +560,7 @@ def pca( ip, features_df, std_of_features_df, name_appendage = "" ):
 
             print( "KMeans cluster labels:", list( label_and_cluster_label ) )
 
-        return pca_ft_df.index.tolist(), pca_ft_df[pca_ft_df.columns[0]].tolist(), pca_ft_df[pca_ft_df.columns[1]].tolist(), np.array( pca_std[0] ).tolist(), np.array( pca_std[1] ).tolist(), components[:, 0].tolist(), components[:, 1].tolist(), pca_feature_names
+        return pca_ft_df.index.tolist(), pca_ft_df[pca_ft_df.columns[0]].tolist(), pca_ft_df[pca_ft_df.columns[1]].tolist(), np.array( pca_std[0] ).tolist(), np.array( pca_std[1] ).tolist(), components[:, 0].tolist(), components[:, 1].tolist(), pca_feature_names, pc_contributions, feature_coefficients
 
 def distance_to_virgin_analysis_based_on_pcas( output_directory, features_df ):
 

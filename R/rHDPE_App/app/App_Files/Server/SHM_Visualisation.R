@@ -67,7 +67,7 @@ observe({
     
     req( shm_data$read_data )
     
-    specimens <- shm_data$file_data %>% filter( Resin %in% shm_resins_r$shm_resins_r[getReactableState( "shm_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- shm_data$file_data_minus_hidden %>% filter( Resin %in% shm_resins_r$shm_resins_r[getReactableState( "shm_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "shm_select_specimens_pi", choices = specimens )
     
@@ -81,7 +81,7 @@ obtain_data_to_plot_shm <- eventReactive( input$shm_visualise_ab, {
   shm_input_parameters$shiny_specimens_to_plot <- shm_selected_specimens()
   shm_input_parameters$shiny_split <- shm_range()
   
-  data_to_plot <- SHM_Analysis$SHM_plotting$plot_data( shm_input_parameters, shm_data$data[[1]], shm_data$data[[2]], c() )
+  data_to_plot <- SHM_Analysis$SHM_plotting$plot_data( shm_input_parameters, shm_data$data_minus_hidden[[1]], shm_data$data_minus_hidden[[2]], c(), name_appendage = current_dataset() )
   
   max_length <- max( lengths( data_to_plot ) )
   
@@ -125,7 +125,7 @@ output$shm_visualisation_po <- renderPlot({
   
   for (s in seq_along( shm_selected_resins() )) {
     
-    resin_specimens <- shm_data$file_data %>% filter( Resin == shm_selected_resins()[s], Label %in% shm_selected_specimens() )
+    resin_specimens <- shm_data$file_data_minus_hidden %>% filter( Resin == shm_selected_resins()[s], Label %in% shm_selected_specimens() )
     
     l <- nrow( resin_specimens )
     

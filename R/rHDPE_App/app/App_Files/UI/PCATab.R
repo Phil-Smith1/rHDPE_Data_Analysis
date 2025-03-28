@@ -8,7 +8,7 @@ PCATab <- tabPanel( "PCA",
       
       wellPanel(
       
-        checkboxGroupInput( "PCA_select_datasets_cb", "Select datasets:", choiceNames = datasets, choiceValues = 1:9 ),
+        checkboxGroupInput( "PCA_select_datasets_cb", "Select datasets to feed the PCA:", choiceNames = datasets, choiceValues = 1:9 ),
         
       ),
       
@@ -64,8 +64,291 @@ PCATab <- tabPanel( "PCA",
     
     mainPanel(
       
-      plotOutput( "PCA_po", height = 800 ),
-      plotOutput( "PCA_subplots_po", height = 800 )
+      wellPanel(
+        
+        plotOutput( "PCA_po", height = 800 ),
+        
+        br(),
+        
+        p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+        
+        fluidRow( column( 12, tableOutput( "PCA_variation_to" ), align = "center" ) ),
+        
+        br(),
+        
+        p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+        
+        fluidRow(
+          
+          column( 2 ),
+          
+          column( 4, p( "PC 1" ), tableOutput( "PCA_coefficients_1_to" ), align = "center" ),
+        
+          column( 4, p( "PC 2" ), tableOutput( "PCA_coefficients_2_to" ), align = "center" ),
+          
+          column( 2 )
+          
+        )
+        
+      ),
+      
+      pickerInput( "PCA_individual_experiments_pi", "Select experiments to show the individual PCAs of", choices = c(), multiple = TRUE, width = "100%", options = pickerOptions( actionsBox = TRUE ) ),
+      
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '1' ) == true",
+                        
+        wellPanel(
+          
+          plotOutput( "PCA_ftir_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_ftir_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_ftir_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_ftir_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      ),
+
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '2' ) == true",
+
+        wellPanel(
+          
+          plotOutput( "PCA_dsc_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_dsc_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_dsc_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_dsc_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      ),
+
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '3' ) == true",
+
+        wellPanel(
+          
+          plotOutput( "PCA_tga_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_tga_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_tga_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_tga_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      ),
+
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '4' ) == true",
+
+        wellPanel(
+          
+          plotOutput( "PCA_rheo_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_rheo_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_rheo_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_rheo_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      ),
+
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '5' ) == true",
+
+        wellPanel(
+          
+          plotOutput( "PCA_tt_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_tt_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_tt_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_tt_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      ),
+
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '6' ) == true",
+
+        wellPanel(
+          
+          plotOutput( "PCA_colour_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_colour_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_colour_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_colour_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      ),
+
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '8' ) == true",
+
+        wellPanel(
+          
+          plotOutput( "PCA_tls_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_tls_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_tls_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_tls_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      ),
+
+      conditionalPanel( condition = "input.PCA_individual_experiments_pi.includes( '9' ) == true",
+
+        wellPanel(
+          
+          plotOutput( "PCA_escr_po", height = 800 ),
+          
+          br(),
+          
+          p( "Percentage Variation Explained by each Principal Component (PC)", style = "text-align: center" ),
+          
+          fluidRow( column( 12, tableOutput( "PCA_escr_variation_to" ), align = "center" ) ),
+          
+          br(),
+          
+          p( "Coefficients of features for the PCs (in order of coefficient magnitude)", style = "text-align: center" ),
+          
+          fluidRow(
+            
+            column( 2 ),
+            
+            column( 4, p( "PC 1" ), tableOutput( "PCA_escr_coefficients_1_to" ), align = "center" ),
+            
+            column( 4, p( "PC 2" ), tableOutput( "PCA_escr_coefficients_2_to" ), align = "center" ),
+            
+            column( 2 )
+            
+          )
+          
+        )
+
+      )
       
     )
     

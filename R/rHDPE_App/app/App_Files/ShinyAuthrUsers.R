@@ -1,6 +1,11 @@
 #===============
 # Database for logins.
 
+#===============
+# Code
+
+# user_base is a tibble containing login details.
+
 user_base <- tibble::tibble(
   
   user = c( "psmith", "admin", "tmcdonald", "standard" ),

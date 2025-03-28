@@ -24,7 +24,7 @@ observe({
     
     req( gcms_data$read_data )
     
-    specimens <- gcms_data$file_data %>% filter( Resin %in% gcms_resins_r$gcms_resins_r[getReactableState( "gcms_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- gcms_data$file_data_minus_hidden %>% filter( Resin %in% gcms_resins_r$gcms_resins_r[getReactableState( "gcms_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "gcms_select_specimens_pi", choices = specimens )
     
@@ -53,7 +53,7 @@ obtain_data_to_plot_gcms <- eventReactive( input$gcms_visualise_ab, {
   gcms_input_parameters$shiny_specimens_to_plot <- gcms_selected_specimens()
   gcms_input_parameters$shiny_split <- gcms_range()
   
-  data.frame( GCMS_Analysis$GCMS_plotting$plot_data( gcms_input_parameters, gcms_data$data[[1]], gcms_data$data[[2]], c(), c(), c() ) )
+  data.frame( GCMS_Analysis$GCMS_plotting$plot_data( gcms_input_parameters, gcms_data$data_minus_hidden[[1]], gcms_data$data_minus_hidden[[2]], c(), c(), c(), name_appendage = current_dataset() ) )
   
 })
 
@@ -106,7 +106,7 @@ output$gcms_visualisation_po <- renderPlot({
     
     for (s in seq_along( gcms_selected_resins() )) {
       
-      resin_specimens <- gcms_data$file_data %>% filter( Resin == gcms_selected_resins()[s], Label %in% gcms_selected_specimens() )
+      resin_specimens <- gcms_data$file_data_minus_hidden %>% filter( Resin == gcms_selected_resins()[s], Label %in% gcms_selected_specimens() )
       
       l <- nrow( resin_specimens )
       

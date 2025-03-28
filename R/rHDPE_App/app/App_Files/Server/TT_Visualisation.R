@@ -67,7 +67,7 @@ observe({
     
     req( tt_data$read_data )
     
-    specimens <- tt_data$file_data %>% filter( Resin %in% tt_resins_r$tt_resins_r[getReactableState( "tt_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- tt_data$file_data_minus_hidden %>% filter( Resin %in% tt_resins_r$tt_resins_r[getReactableState( "tt_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "tt_select_specimens_pi", choices = specimens )
     
@@ -81,7 +81,7 @@ obtain_data_to_plot_tt <- eventReactive( input$tt_visualise_ab, {
   tt_input_parameters$shiny_specimens_to_plot <- tt_selected_specimens()
   tt_input_parameters$shiny_split <- tt_range()
   
-  data_to_plot <- TT_Analysis$TT_plotting$plot_data( tt_input_parameters, tt_data$data[[1]], tt_data$data[[2]], c(), c() )
+  data_to_plot <- TT_Analysis$TT_plotting$plot_data( tt_input_parameters, tt_data$data_minus_hidden[[1]], tt_data$data_minus_hidden[[2]], c(), c(), current_dataset() )
   
   max_length <- max( lengths( data_to_plot ) )
   
@@ -125,7 +125,7 @@ output$tt_visualisation_po <- renderPlot({
   
   for (s in seq_along( tt_selected_resins() )) {
     
-    resin_specimens <- tt_data$file_data %>% filter( Resin == tt_selected_resins()[s], Label %in% tt_selected_specimens() )
+    resin_specimens <- tt_data$file_data_minus_hidden %>% filter( Resin == tt_selected_resins()[s], Label %in% tt_selected_specimens() )
     
     l <- nrow( resin_specimens )
     

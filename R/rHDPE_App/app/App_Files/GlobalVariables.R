@@ -1,9 +1,13 @@
 #===============
-# Variables
+# File containing global variables for the app.
+
+#===============
+# Global Variables
 
 output_directories <- c( "FTIR", "DSC", "TGA", "Rheology", "Colour", "TT", "SHM", "TLS", "ESCR", "GCMS", "Global", "Raw_Data" )
 
 experiments <- c( "FTIR", "DSC", "TGA", "Rheology", "Colour", "Tensile Testing", "SHM", "TLS", "ESCR", "GCMS" )
+resin_data_titles <- output_directories[1:10]
 
 datasets <- c( "FTIR", "DSC", "TGA", "Rheology", "Tensile Testing", "Colour", "SHM", "TLS", "ESCR" )
 
@@ -18,10 +22,6 @@ unnormalised_shm_data <- suppressMessages( read_csv( "www/Output/SHM/Features/Me
 
 features_metadata <- read_excel( "Features_Metadata.xlsx", .name_repair = "unique_quiet" )
 
-features_labels <- pull( features_metadata, Feature_Label )
-features_human_labels <- pull( features_metadata, Human_Label )
-features_axis_labels <- pull( features_metadata, Axis_Label )
-
 # theme = bs_theme( bootswatch = "cyborg" ) %>% bslib::bs_add_rules( ".btn-secondary { background-color: orange }" )
 # theme = bs_theme( bootswatch = "cyborg" ) %>% bslib::bs_add_rules( ".btn-secondary { --bs-btn-border-color: orange }" )
 # theme = bs_theme( bootswatch = "cyborg" ) %>% bslib::bs_add_rules( ".btn-secondary:hover { background-color: orange }" )
@@ -32,18 +32,22 @@ app_theme <- bs_theme( bootswatch = "cyborg" )
 
 bs_primary <- bs_get_variables( app_theme, "primary" )
 bs_light <- bs_get_variables( app_theme, "gray-900" )
+bs_bg <- bs_get_variables( app_theme, "body-bg" )
 
 secondary_colour <- "#37deb1"
 secondary_colour_light <- "#23ebb5"
 text_colour <- "white"
 
 app_theme <- bs_theme( bootswatch = "cyborg" ) %>% bslib::bs_add_rules( list( paste0( ".btn-secondary { --bs-btn-hover-color: ", bs_primary, " }" ), paste0( ".btn-secondary { --bs-btn-hover-border-color: ", secondary_colour, " }" ), paste0( ".btn-secondary { --bs-btn-border-color: ", bs_primary, " }" ), ".btn-secondary { --bs-btn-active-color: green }", paste0( ".btn-secondary { --bs-btn-active-border-color: ", bs_primary, " }" ), ".btn-secondary { --bs-btn-active-border-color: green }", paste0( ".well { border-color: ", bs_primary, " }" ) ) )
+app_theme <- app_theme %>% bslib::bs_add_rules( ":root { --bs-emphasis-color-rgb: 255, 255, 255 }" )
 
 ds_paper_1_resins_identifiers <- c( 1:23 )
 ds_paper_2_resins_identifiers <- c( 1:24 )
 virgin_resins_identifiers <- as.integer( c( 16, 17, 19, 24, 25, 26, 27, 28 ) )
 pp_resins_identifiers <- as.integer( c( 18, 20, 21, 22, 23 ) )
 component_analysis_resins_identifiers <- as.integer( c( 1:23, 401:416, seq( 500, 518, 2 ), 601:605, 701:712 ) )
+
+resin_types <- c( "HDPE PCR", "HDPE Virgin", "Blend", "PP PCR", "PP Virgin" )
 
 list_of_colours <- suppressMessages( read_csv( "List_of_Colours.csv", col_types = cols() )[, -1] )
 

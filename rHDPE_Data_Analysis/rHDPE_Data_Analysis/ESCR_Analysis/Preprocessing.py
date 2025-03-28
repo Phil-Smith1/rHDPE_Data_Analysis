@@ -11,64 +11,60 @@ from .. import Global_Utilities as gu
 
 # Function definitions.
 
-def read_raw_data_file_1( filename, resin_data, file_data, data ):
+def read_raw_data_file_1( filename, f, resin_data, file_data, data ):
+
+    pattern = re.compile( r"^Resin(\d+)_(\d+)_" )
+
+    resin = int( pattern.search( f ).groups()[0] )
+
+    specimen = int( pattern.search( f ).groups()[1] )
+
+    column_data = [[], []]
 
     with open( filename, 'r' ) as file:
 
         lines = file.readlines()
 
-        linenumber = 0
-
         for line in lines:
 
-            if linenumber < 1:
+            a_list = line.split( "," )
 
-                resins = line.rstrip().split( "," )[1:]
+            column_data[0].append( float( a_list[0] ) )
+            column_data[1].append( float( a_list[1] ) )
 
-                data[1] = [[] for i in resins]
+    for i in range( 2 ):
 
-                linenumber += 1
-                continue
+        data[i].append( np.array( column_data[i] ) )
 
-            if line.rstrip():
-
-                a_list = line.rstrip().split( "," )
-
-                data[0].append( float( a_list[0] ) )
-
-                for ind, i in enumerate( a_list[1:] ):
-
-                    data[1][ind].append( float( i ) )
-
-            else:
-
-                break
-
-        for r in resins:
-
-            file_data.append( [int( r ), 0, resin_data.loc[int( r )]["Label"] + ".{}".format( 0 ), ""] )
-
-    data[0] = np.array( data[0] )
-
-    for i in range( len( data[1] ) ):
-
-        data[1][i] = np.array( data[1][i] )
+    file_data.append( [resin, specimen, resin_data.loc[resin]["Label"] + ".{}".format( specimen ), ""] )
 
 def extract_raw_data( directory, data_directory ):
     '''Extract the raw data from the files.'''
 
     resin_data = gu.get_list_of_resins_data( directory ) # Obtain the spreadsheet of data for the resins.
 
-    file_data, data = [], [[], [], np.array( [24, 48, 72, 96] )]
+    resins = sorted( [os.path.basename( path ) for path in glob.glob( data_directory + "*" )], key = gu.sort_raw_files_1 )
 
-    read_raw_data_file_1( data_directory + "ESCR.csv", resin_data, file_data, data )
+    file_data, data = [], [[], [], np.array( [24, 48, 72, 96] ) ]
+
+    pattern = re.compile( r"^Resin(\d+)" )
+
+    for r in resins:
+
+        filenames = sorted( [os.path.basename( path ) for path in glob.glob( data_directory + r + "/*" )], key = gu.sort_raw_files_2 )
+
+        resin = int( pattern.search( r ).groups()[0] )
+
+        for f in filenames:
+
+            read_raw_data_file_1( data_directory + r + "/" + f, f, resin_data, file_data, data )
 
     return file_data, data
 
 def standardise_data( data ):
     '''Standardise data.'''
 
-    pass
+    data[0] = data[0][0]
 
 def add_description_to_file_data( file_data ):
     '''Add descriptions in the form of letters to each specimen.'''
@@ -87,6 +83,18 @@ def read_files_and_preprocess( directory, data_directory, merge_groups ):
     if merge_groups:
 
         gu.merge( file_data )
+
+    return file_data, data
+
+def read_shiny_file( directory, filepath, filename, name_appendage = "" ):
+
+    resin_data = gu.get_list_of_resins_data( directory, name_appendage ) # Obtain the spreadsheet of data for the resins.
+
+    file_data, data = [], [[], [], np.array( [24, 48, 72, 96] ) ]
+
+    read_raw_data_file_1( filepath, filename, resin_data, file_data, data )
+
+    standardise_data( data )
 
     return file_data, data
 

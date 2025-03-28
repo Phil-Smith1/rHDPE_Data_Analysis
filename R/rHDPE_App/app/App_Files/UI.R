@@ -1,4 +1,8 @@
 #===============
+# The main object in this file is ui, which is then passed to the shinyApp() function in app.R.
+# However, we also use this file to attach packages and source all required additional code.
+
+#===============
 # Libraries
 
 library( shiny )
@@ -30,64 +34,39 @@ library( httr )
 library( promises )
 library( future )
 library( parallel )
+library( openxlsx )
+library( reactable.extras )
 
 plan( multisession ) # Related to promises/future functionality.
 
 #===============
 # Sources
 
-source( here::here( "App_Files/WorkQueue.R" ) )
+source( here::here( "App_Files/UserParameters.R" ) ) # File that sets certain parameters depending on the platform the app is running on.
+source( here::here( "App_Files/GlobalVariables.R" ) ) # File containing global variables for the app.
+source( here::here( "App_Files/ShinyAuthrUsers.R" ) ) # File containing the database for logins.
+source( here::here( "App_Files/Utilities.R" ) ) # File containing utility functions.
+source( here::here( "App_Files/PythonInstall.R" ) ) # Sets up/installs Python on the platform.
+source( here::here( "App_Files/ImportAndInitialise_rHDPE_Data_Analysis_Package.R" ) ) # Imports modules from the rHDPE_Data_Analysis package and initialises parameters.
+source( here::here( "App_Files/JS.R" ) ) # File containing JS code and CSS styles.
 
-source( here::here( "App_Files/CustomWorkQueue.R" ) )
-
-source( here::here( "App_Files/UserParameters.R" ) )
-
-if (app_user != "shiny") { # Load DataLab libraries and functions, but not if on shinyapps as some packages are stored only locally on DataLab.
-  
-  source( here::here( "DataLab_Files/DataLab.R" ) )
-  
-}
-
-source( here::here( "rHDPE_R_Functions.R" ) )
-
-source( here::here( "App_Files/Utilities.R" ) )
-
-source( here::here( "App_Files/GlobalVariables.R" ) )
-
-source( here::here( "App_Files/ShinyAuthrUsers.R" ) )
-
-source( here::here( "App_Files/PythonInstall.R" ) )
-
-source( here::here( "App_Files/PackageImportsAndParameterSetting.R" ) )
+#===============
+# Sources for UI Tabs.
 
 source( here::here( "App_Files/UI/HomeTab.R" ) )
-
 source( here::here( "App_Files/UI/PPPredictionTab.R" ) )
-
 source( here::here( "App_Files/UI/ESCRPredictionTab.R" ) )
-
 source( here::here( "App_Files/UI/PCATab.R" ) )
-
 source( here::here( "App_Files/UI/ContentAnalysisTab.R" ) )
-
 source( here::here( "App_Files/UI/FeatureCorrelationsTab.R" ) )
-
 source( here::here( "App_Files/UI/ESCRRiskAssessmentTab.R" ) )
-
 source( here::here( "App_Files/UI/VisualisationTab.R" ) )
-
 source( here::here( "App_Files/UI/ResinMetadataTab.R" ) )
-
 source( here::here( "App_Files/UI/FileDataTab.R" ) )
-
 source( here::here( "App_Files/UI/UploadTab.R" ) )
-
 source( here::here( "App_Files/UI/SaveTab.R" ) )
-
 source( here::here( "App_Files/UI/SettingsTab.R" ) )
-
 source( here::here( "App_Files/UI/DataLabTab.R" ) )
-
 source( here::here( "App_Files/UI/DevTab.R" ) )
 
 #===============
@@ -95,18 +74,15 @@ source( here::here( "App_Files/UI/DevTab.R" ) )
 
 ui <- fluidPage(
   
+  reactable.extras::reactable_extras_dependency(),
+  
   #===============
-  # JS code that sets an input value to say when the session is initialised.
+  # JS code and CSS styles.
   
-  tags$script(
-    
-    HTML( "$( document ).on( 'shiny:sessioninitialized', function( event ) {
-    
-       Shiny.setInputValue( 'js_initialised', true );
-       
-    });" )
-  
-  ),
+  tags$head( tags$style( HTML( CSS_for_read_more ) ) ), # CSS code for 'read more' buttons.
+  tags$style( HTML( CSS_for_download_btn ) ), # CSS code for download buttons.
+  tags$script( HTML( JS_for_read_more ) ), # JS code that enables 'read more' buttons to work.
+  tags$script( HTML( JS_for_session_initialisation ) ), # JS code that sets an input value to say when the session is initialised.
   
   #===============
   # Shinyjs for JavaScript operations.

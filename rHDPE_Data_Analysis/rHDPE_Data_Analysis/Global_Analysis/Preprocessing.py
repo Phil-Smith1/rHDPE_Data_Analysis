@@ -120,8 +120,8 @@ def read_files_and_preprocess( ip, datasets_to_read = [], normalised = True, min
 
     ip.datasets_to_read = datasets_to_read
 
-    dataset_names = ["FTIR", "DSC", "TGA", "Rheology", "TT", "Colour", "SHM", "TLS", "ESCR", "FTIR2", "FTIR3", "TGA_SB", "SAXS"]
-    dataset_directories = ["FTIR/Features/", "DSC/Features/", "TGA/Features/", "Rheology/Features/", "TT/Features/", "Colour/Features/", "SHM/Features/", "TLS/Features/", "ESCR/Features/", "FTIR/Integral_Analysis/", "FTIR/Component_Analysis/Features/", "TGA/Sandbox/", "SAXS/Features/"]
+    dataset_names = ["FTIR", "DSC", "TGA", "Rheology", "TT", "Colour", "SHM", "TLS", "ESCR", "FTIR2", "FTIR3", "TGA_SB", "SAXS", "GPC", "SAXS"]
+    dataset_directories = ["FTIR/Features/", "DSC/Features/", "TGA/Features/", "Rheology/Features/", "TT/Features/", "Colour/Features/", "SHM/Features/", "TLS/Features/", "ESCR/Features/", "FTIR/Integral_Analysis/", "FTIR/Component_Analysis/Features/", "TGA/Sandbox/", "SAXS/Features/", "GPC/Features", "Global/TM/"]
 
     normalised_ext = ""
 

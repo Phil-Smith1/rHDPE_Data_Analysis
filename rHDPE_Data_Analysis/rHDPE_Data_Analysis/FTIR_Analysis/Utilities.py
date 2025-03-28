@@ -1311,6 +1311,10 @@ def pp_percentage_model( directory, output_directory, file_data, data, name_appe
 
         features_array[:, i] = vfunc( (features_array[:, i] - mean_features_without_extremities_pre_adjust[sample_mask.index( 500 ), i]) / popt[0] )
 
+    features_array = np.hstack( (np.array( [file_data_mask[i][1] for i in range( len( file_data_mask ) )] )[:, np.newaxis], features_array) )
+
+    feature_names.insert( 0, "Specimen" )
+
     df = gu.array_with_column_titles_and_label_titles_to_df( features_array, feature_names, [file_data_mask[i][0] for i in range( len( file_data_mask ) )] )
 
     df.to_csv( output_directory + "FTIR/Sandbox/PP_Percentage_Analysis/Features/PP_Predictions" + name_appendage + ".csv", float_format = "%.3f" )

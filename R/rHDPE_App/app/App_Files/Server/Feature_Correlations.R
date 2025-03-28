@@ -1,5 +1,23 @@
 # Feature correlation tab server code.
 
+observeEvent( input$corr_select_experiment_x_si, {
+  
+  features_labels <- features_metadata$Feature_Label[which( features_metadata$Experiment == input$corr_select_experiment_x_si )]
+  features_human_labels <- features_metadata$Human_Label[which( features_metadata$Experiment == input$corr_select_experiment_x_si )]
+  
+  updateSelectInput( session, "corr_select_x_si", choices = setNames( features_labels, features_human_labels ) )
+  
+})
+
+observeEvent( input$corr_select_experiment_y_si, {
+  
+  features_labels <- features_metadata$Feature_Label[which( features_metadata$Experiment == input$corr_select_experiment_y_si )]
+  features_human_labels <- features_metadata$Human_Label[which( features_metadata$Experiment == input$corr_select_experiment_y_si )]
+  
+  updateSelectInput( session, "corr_select_y_si", choices = setNames( features_labels, features_human_labels ) )
+  
+})
+
 # Table output.
 
 output$corr_table_ro <- renderReactable({
@@ -65,6 +83,28 @@ scatterplot_y <- eventReactive( input$corr_plot_ab, input$corr_select_y_si )
 obtain_scatterplot_data <- eventReactive( input$corr_plot_ab, {
   
   validate( need( length( correlation_selected_resins() ) > 0, "Please select the resins for which you want to do the feature correlation." ) )
+  
+  if ("DSC" %in% c( input$corr_select_experiment_x_si, input$corr_select_experiment_y_si )) {
+    
+    initiate_data_reading( "dsc", "DSC" )
+    
+    dsc_input_parameters$feature_selection <- FALSE
+    dsc_input_parameters$read_input_parameters <- TRUE
+    
+    DSC_Analysis$Utilities$read_and_analyse_features( dsc_input_parameters, dsc_data$data[[1]], current_dataset() )
+    
+  }
+  
+  if ("Rheology" %in% c( input$corr_select_experiment_x_si, input$corr_select_experiment_y_si )) {
+    
+    initiate_data_reading( "rheo", "Rheology" )
+    
+    rheo_input_parameters$feature_selection <- FALSE
+    rheo_input_parameters$read_input_parameters <- TRUE
+    
+    Rheology_Analysis$Utilities$read_and_analyse_features( rheo_input_parameters, rheo_data$data[[1]], current_dataset() )
+    
+  }
   
   obtain_scatterplot_data_to_plot( global_input_parameters, scatterplot_x(), scatterplot_y(), correlation_selected_resins() )
   
@@ -187,4 +227,51 @@ output$corr_pearson_to <- renderText( paste( "The Pearson correlation coefficien
 output$corr_exponential_fit_to <- renderText( paste0( "The exponential fit equation is y = ", exponential_fit_model()[[1]], " * e^(", exponential_fit_model()[[2]], " * x) + ", exponential_fit_model()[[3]] ) )
 
 output$corr_exponential_fit_r2_to <- renderText( paste0( "The R-squared value is ", exponential_fit_r2() ) )
+
+output$corr_export_db <- downloadHandler(
+  
+  filename = function() { "Feature_Correlations.xlsx" },
+  
+  content = function( file ) {
+    
+    wb <- createWorkbook()
+
+    addWorksheet( wb, sheetName = "Feature Correlations" )
+
+    setColWidths( wb, 1, cols = 1:5, widths = c( 15, 15, 15, 15, 15 ) )
+
+    writeData( wb, 1, "File exported from the PCR Predictor Tool", startRow = 1, startCol = 1 )
+
+    mergeCells( wb, 1, rows = 1, cols = 1:5 )
+
+    addStyle( wb, 1, style = createStyle( fontSize = 16, textDecoration = "bold", halign = "center", fgFill = bs_bg, fontColour = text_colour, border = "TopBottomLeftRight", borderColour = bs_primary, borderStyle = "medium" ), rows = 1, cols = 1:5, gridExpand = TRUE )
+
+    mergeCells( wb, 1, rows = 2, cols = 1:5 )
+    
+    writeData( wb, 1, paste( features_metadata$Axis_Label[match( scatterplot_x(), features_metadata$Feature_Label )], " vs ", features_metadata$Axis_Label[match( scatterplot_y(), features_metadata$Feature_Label )] ), startRow = 3, startCol = 1 )
+
+    mergeCells( wb, 1, rows = 3, cols = 1:5 )
+    
+    addStyle( wb, 1, style = createStyle( fontSize = 12, halign = "center", fgFill = bs_bg, fontColour = text_colour, border = "TopBottomLeftRight", borderColour = bs_primary, borderStyle = "medium" ), rows = 3, cols = 1:5, gridExpand = TRUE )
+    
+    df <- obtain_scatterplot_data()[, c( 5, 1:4 )]
+    
+    df$Resin <- lapply( df$Resin, function( x ) { resin_data_r()$Label[match( x, resin_data_r()$Identifier )] } )
+    
+    names( df )[names( df ) == "X"] <- features_metadata$Axis_Label[match( scatterplot_x(), features_metadata$Feature_Label )]
+    names( df )[names( df ) == "Y"] <- features_metadata$Axis_Label[match( scatterplot_y(), features_metadata$Feature_Label )]
+    names( df )[names( df ) == "EX"] <- paste0( "Error of ", features_metadata$Axis_Label[match( scatterplot_x(), features_metadata$Feature_Label )] )
+    names( df )[names( df ) == "EY"] <- paste0( "Error of ", features_metadata$Axis_Label[match( scatterplot_y(), features_metadata$Feature_Label )] )
+    
+    writeData( wb, 1, df, startRow = 4, startCol = 1 )
+    
+    addStyle( wb, 1, style = createStyle( fgFill = bs_primary, halign = "center", fontColour = "#ffffff", border = "TopBottomLeftRight", borderColour = bs_bg ), rows = 4, cols = 1:5, gridExpand = TRUE )
+    
+    addStyle( wb, 1, style = createStyle( numFmt = "0.00" ), rows = 5:(4 + nrow( df )), cols = 1:5, gridExpand = TRUE )
+    
+    saveWorkbook( wb, file )
+    
+  }
+  
+)
 

@@ -24,18 +24,18 @@ from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
 import rpy2.robjects as robjects
 
-def source_R_functions( directory ):
+def source_R_functions():
 
     r = robjects.r
-    r['source']( directory + 'rHDPE_R_Functions.R' )
+    r["source"]( Path( __file__ ).absolute().parents[0].as_posix() + "/GoogleDrive_Utilities.R" )
 
 def authorise_googledrive( directory ):
 
-    robjects.globalenv['authorise_googledrive']( directory )
+    robjects.globalenv["authorise_googledrive"]( directory )
 
 def read_csv_from_gd_via_R( directory, filename ):
 
-    read_csv_from_gd = robjects.globalenv['read_csv_from_gd']
+    read_csv_from_gd = robjects.globalenv["read_csv_from_gd"]
 
     rdf = read_csv_from_gd( directory, filename )
 
@@ -63,7 +63,7 @@ def read_csv_pipeline( ip, directory, filename, authorised = False ):
 
                 if not authorised:
 
-                    source_R_functions( ip.directory )
+                    source_R_functions()
 
                     authorise_googledrive( ip.directory )
 
@@ -1493,7 +1493,7 @@ def pca_analysis( pca, features_df, plot_pc_heatmaps = False ):
 
         most_important_features.append( np.argsort( -np.abs( pca.components_[i] ) ) )
 
-        most_important_features[i] = [j for j in most_important_features[i] if abs( pca.components_[i][j] ) > 0.05] # 0.05
+        most_important_features[i] = [j for j in most_important_features[i] if abs( pca.components_[i][j] ) > -1] # 0.05
 
         print( "Key features for PC ", i + 1, ":\n" )
 
@@ -1509,9 +1509,9 @@ def pca_analysis( pca, features_df, plot_pc_heatmaps = False ):
 
             plot_df_heatmap( pc_df )
 
-    nums = np.arange( len( pca.explained_variance_ratio_ ) + 1 )
-    var_ratio = [np.sum( pca.explained_variance_ratio_[:i] ) for i in range( len( pca.explained_variance_ratio_ ) + 1 )]
-
+    # nums = np.arange( len( pca.explained_variance_ratio_ ) + 1 )
+    # var_ratio = [np.sum( pca.explained_variance_ratio_[:i] ) for i in range( len( pca.explained_variance_ratio_ ) + 1 )]
+    # print( var_ratio )
     # plt.figure( figsize = ( 4, 2 ), dpi = 150 )
     # plt.grid()
     # plt.plot( nums, var_ratio, marker = 'o' )
@@ -1521,18 +1521,24 @@ def pca_analysis( pca, features_df, plot_pc_heatmaps = False ):
     # plt.show()
     # plt.close()
 
-    # print( var_ratio )
+    return most_important_features
 
-def perform_pca( directory, features_df, sample_mask, std_error = False, std_of_features_df = [], num_components = 3, filename = "Unnamed.pdf", analysis_of_pca = True, name_appendage = "" ):
+def perform_pca( directory, features_df, sample_mask, std_error = False, std_of_features_df = [], num_components = 3, filename = "Unnamed.pdf", analysis_of_pca = True, shiny = False, name_appendage = "" ):
 
-    resin_data = get_list_of_resins_data( directory, name_appendage ) # Obtain the spreadsheet of data for the resins.
+    resin_data = []
+
+    if not shiny:
+
+        resin_data = get_list_of_resins_data( directory, name_appendage ) # Obtain the spreadsheet of data for the resins.
 
     pca = PCA( n_components = num_components )
     pca_ft = pca.fit_transform( features_df )
 
+    most_important_features = []
+
     if analysis_of_pca:
 
-        pca_analysis( pca, features_df )
+        most_important_features = pca_analysis( pca, features_df )
 
     pca_ft_df = array_with_column_titles_and_label_titles_to_df( pca_ft, ["PC{}".format( i ) for i in range( num_components )], sample_mask )
 
@@ -1552,11 +1558,11 @@ def perform_pca( directory, features_df, sample_mask, std_error = False, std_of_
 
                 std[k].append( s )
 
-        if num_components == 2:
+        if num_components == 2 and not shiny:
 
             plot_scatterplot_of_two_features_pca( directory, pca_ft_df[pca_ft_df.columns[0]].to_numpy(), pca_ft_df[pca_ft_df.columns[1]].to_numpy(), np.transpose( pca.components_[0:2, :] ), pca.feature_names_in_, pca_ft_df.index, [resin_data.loc[i]["Label"] for i in pca_ft_df.index], errorbars = True, std = [std[0], std[1]], line_of_best_fit = False, xlabel = "First Principal Component", ylabel = "Second Principal Component", annotate_style = 2, savefig = True, filename = filename )
 
-        elif num_components == 3:
+        elif num_components == 3 and not shiny:
 
             plot_scatterplot_of_three_features( directory, pca_ft_df[pca_ft_df.columns[0]].to_numpy(), pca_ft_df[pca_ft_df.columns[1]].to_numpy(), pca_ft_df[pca_ft_df.columns[2]].to_numpy(), pca_ft_df.index, [resin_data.loc[i]["Label"] for i in pca_ft_df.index], xlabel = "First Principal Component", ylabel = "Second Principal Component", zlabel = "Third Principal Component" )
 
@@ -1572,11 +1578,11 @@ def perform_pca( directory, features_df, sample_mask, std_error = False, std_of_
 
     if std_error:
 
-        return pca_ft_df, [std[0], std[1]], np.transpose( pca.components_[0:2, :] ), pca.feature_names_in_
+        return pca_ft_df, [std[0], std[1]], np.transpose( pca.components_[0:2, :] ), pca.feature_names_in_, pca.explained_variance_ratio_, [[pca.feature_names_in_[most_important_features[i]], pca.components_[i][most_important_features[i]]] for i in range( len( most_important_features ) )]
 
     else:
 
-        return pca_ft_df, [], np.transpose( pca.components_[0:2, :] ), pca.feature_names_in_
+        return pca_ft_df, [], np.transpose( pca.components_[0:2, :] ), pca.feature_names_in_, pca.explained_variance_ratio_, [[pca.feature_names_in_[most_important_features[i]], pca.components_[i][most_important_features[i]]] for i in range( len( most_important_features ) )]
 
 def relabel_index_and_delete_first_column( df ):
 

@@ -71,7 +71,7 @@ observe({
     
     req( rheo_data$read_data )
     
-    specimens <- rheo_data$file_data %>% filter( Resin %in% rheo_resins_r$rheo_resins_r[getReactableState( "rheo_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- rheo_data$file_data_minus_hidden %>% filter( Resin %in% rheo_resins_r$rheo_resins_r[getReactableState( "rheo_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "rheo_select_specimens_pi", choices = specimens )
     
@@ -123,7 +123,7 @@ obtain_data_to_plot_rheo <- eventReactive( input$rheo_visualise_ab, {
     
   }
   
-  data_to_plot <- Rheology_Analysis$rheology_plotting$plot_data( rheo_input_parameters, rheo_data$data[[1]], rheo_data$data[[2]], c(), c() )
+  data_to_plot <- Rheology_Analysis$rheology_plotting$plot_data( rheo_input_parameters, rheo_data$data_minus_hidden[[1]], rheo_data$data_minus_hidden[[2]], c(), c(), name_appendage = current_dataset() )
   
   max_length <- max( lengths( data_to_plot ) )
   
@@ -205,7 +205,7 @@ output$rheo_visualisation_po <- renderPlot({
     
     for (s in seq_along( rheo_selected_resins() )) {
       
-      resin_specimens <- rheo_data$file_data %>% filter( Resin == rheo_selected_resins()[s], Label %in% rheo_selected_specimens() )
+      resin_specimens <- rheo_data$file_data_minus_hidden %>% filter( Resin == rheo_selected_resins()[s], Label %in% rheo_selected_specimens() )
       
       l <- nrow( resin_specimens )
       

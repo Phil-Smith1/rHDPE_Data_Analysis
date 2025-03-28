@@ -7,11 +7,7 @@ perform_save_of_data <- function() {
   
   datasets_to_save( 0 )
   
-  if (app_user == "philsmith") {
-    
-    showNotification( "Files already saved locally." )
-    
-  } else if (app_user == "shiny") {
+  if (app_user == "shiny") {
     
     save_progress <<- shiny::Progress$new()
     save_progress$set( message = "Saving Files", value = 0 )
@@ -57,6 +53,12 @@ observeEvent( input$save_quick_itb, {
   
   disable( "save_full_itb" )
   
+  if (app_user == "philsmith") {
+    
+    showNotification( "Files already saved locally." )
+    
+  }
+  
   perform_save_of_data()
   
 })
@@ -78,6 +80,12 @@ observeEvent( input$save_full_itb, {
   gcms_data$save <- TRUE
   global_data$save <- TRUE
   raw_data$save <- TRUE
+  
+  if (app_user == "philsmith") {
+    
+    showNotification( "Files already saved locally." )
+    
+  }
   
   perform_save_of_data()
   

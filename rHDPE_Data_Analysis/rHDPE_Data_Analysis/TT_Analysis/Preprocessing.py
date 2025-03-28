@@ -48,6 +48,33 @@ def read_raw_data_file_1( filename, f, resin_data, file_data, data ):
 
         file_data.append( [resin, specimen, resin_data.loc[resin]["Label"] + ".{}".format( specimen ), ""] )
 
+def read_raw_data_file_shiny( filename, f, resin_data, file_data, data ):
+
+    pattern = re.compile( r"^Resin(\d+)_(\d+)_" )
+
+    resin = int( pattern.search( f ).groups()[0] )
+
+    specimen = int( pattern.search( f ).groups()[1] )
+
+    df = pd.read_excel( filename )
+
+    crop = 0
+
+    strain = df.iloc[:, 5].tolist()
+
+    for i, j in enumerate( strain ):
+
+        if j > 0.5:
+
+            crop = i
+            break
+
+    for i in range( len( df.columns ) ):
+
+        data[i].append( df.iloc[:, i].to_numpy( dtype = np.float64 )[crop:] )
+
+    file_data.append( [resin, specimen, resin_data.loc[resin]["Label"] + ".{}".format( specimen ), ""] )
+
 def extract_raw_data( directory, data_directory ):
     '''Extract the raw data from the files.'''
 
@@ -93,6 +120,18 @@ def read_files_and_preprocess( directory, data_directory, merge_groups ):
     if merge_groups:
 
         gu.merge( file_data )
+
+    return file_data, data
+
+def read_shiny_file( directory, filepath, filename, name_appendage = "" ):
+
+    resin_data = gu.get_list_of_resins_data( directory, name_appendage ) # Obtain the spreadsheet of data for the resins.
+
+    file_data, data = [], [[], [], [], [], [], [], []]
+
+    read_raw_data_file_shiny( filepath, filename, resin_data, file_data, data )
+
+    standardise_data( data )
 
     return file_data, data
 

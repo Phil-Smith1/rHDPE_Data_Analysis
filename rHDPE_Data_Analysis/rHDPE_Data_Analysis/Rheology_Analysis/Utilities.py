@@ -343,7 +343,7 @@ def read_and_analyse_features( ip, file_data, name_appendage = "" ):
 
     # Perform PCA for rheology features.
 
-    gu.perform_pca( ip.directory, gu.array_with_column_titles_to_df( mean_features, ["Rhe_Feature_" + str( i + 1 ) for i in range( len( mean_feature_names ) )] ), sample_mask, std_error = True, std_of_features_df = pd.DataFrame( std_of_features ), num_components = 2, filename = ip.output_directory + "Rheology/Features/PCA.pdf" )
+    # gu.perform_pca( ip.directory, gu.array_with_column_titles_to_df( mean_features, ["Rhe_Feature_" + str( i + 1 ) for i in range( len( mean_feature_names ) )] ), sample_mask, std_error = True, std_of_features_df = pd.DataFrame( std_of_features ), num_components = 2, filename = ip.output_directory + "Rheology/Features/PCA.pdf" )
 
     if plot_specimen_bars:
 

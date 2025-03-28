@@ -67,7 +67,7 @@ observe({
     
     req( colour_data$read_data )
     
-    specimens <- colour_data$file_data %>% filter( Resin %in% colour_resins_r$colour_resins_r[getReactableState( "colour_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
+    specimens <- colour_data$file_data_minus_hidden %>% filter( Resin %in% colour_resins_r$colour_resins_r[getReactableState( "colour_table_ro", "selected" ), "Identifier"] ) %>% pull( Label )
     
     updatePickerInput( inputId = "colour_select_specimens_pi", choices = specimens )
     
@@ -95,7 +95,9 @@ obtain_data_to_plot_colour <- eventReactive( input$colour_visualise_ab, {
   colour_input_parameters$shiny_samples_to_plot <- colour_selected_resins()
   colour_input_parameters$shiny_specimens_to_plot <- colour_selected_specimens()
   
-  data_to_plot <- data.frame( Colour_Analysis$Colour_plotting$plot_data( colour_input_parameters, colour_data$data[[1]], colour_data$data[[2]] ) )
+  if (colour_data$compute_features) { initiate_data_reading( "colour", "Colour" ); compute_colour_features( colour_input_parameters, current_dataset, colour_data ) }
+  
+  data_to_plot <- data.frame( Colour_Analysis$Colour_plotting$plot_data( colour_input_parameters, colour_data$data_minus_hidden[[1]], colour_data$data_minus_hidden[[2]], name_appendage = current_dataset() ) )
   
   colnames( data_to_plot ) <- c( "L", "a", "b" )
   
@@ -131,7 +133,7 @@ output$colour_visualisation_po <- renderPlotly({
   
   if ("Specimen" %in% read_colour_mean_specimen_cb()) {
     
-    specimens <- colour_data$file_data %>% filter( Label %in% colour_selected_specimens() )
+    specimens <- colour_data$file_data_minus_hidden %>% filter( Label %in% colour_selected_specimens() )
     
     for (i in 1:nrow( specimens )) {
       

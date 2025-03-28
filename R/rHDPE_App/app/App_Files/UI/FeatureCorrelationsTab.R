@@ -9,8 +9,19 @@ featureCorrelationsTab <- tabPanel( "Feature Correlations",
       
       wellPanel(
         
-        selectInput( "corr_select_x_si", "Select x axis:", choices = setNames( features_labels, features_human_labels ) ),
-        selectInput( "corr_select_y_si", "Select y axis:", choices = setNames( features_labels, features_human_labels ) )
+        h5( "x axis", style = "text-align: center" ),
+        
+        selectizeInput( "corr_select_experiment_x_si", "Select Experiment", choices = c( "", unique( features_metadata$Experiment ) ), options = list( placeholder = "Please select an option below" ) ),
+        selectInput( "corr_select_x_si", "Select Feature", choices = NULL )
+        
+      ),
+      
+      wellPanel(
+        
+        h5( "y axis", style = "text-align: center" ),
+        
+        selectizeInput( "corr_select_experiment_y_si", "Select Experiment", choices = c( "", unique( features_metadata$Experiment ) ), options = list( placeholder = "Please select an option below" ) ),
+        selectInput( "corr_select_y_si", "Select Feature", choices = NULL )
         
       ),
       
@@ -46,7 +57,9 @@ featureCorrelationsTab <- tabPanel( "Feature Correlations",
         checkboxInput( "corr_limits_cb", "Restrict axis limits" ),
         checkboxInput( "corr_savefig_cb", "Save the figure" )
         
-      )
+      ),
+      
+      downloadButton( "corr_export_db", "Export Data", class = "download" )
 
     ),
 
